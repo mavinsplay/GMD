@@ -28,10 +28,10 @@ class Button(pygame.sprite.Sprite):
             image, (int(width * scale), int(height * scale)))
         self.rect = self.image.get_rect(topleft=position)
 
-    def draw(self, surface):
+    def draw(self, surface) -> None:
         surface.blit(self.image, (self.rect.x, self.rect.y))
 
-    def set_signal_func(self, func: ...) -> None:
+    def set_callback_func(self, func: ...) -> None:
         self.signal_func = func
 
     def click(self, pos) -> None:
@@ -49,65 +49,109 @@ class GMD:
         self.width = width
         self.height = height
         self.running = True
+        self.levels_button = True
         self.FPS = fps
         self.screen = pygame.display.set_mode((self.width, self.height))
-        self.background = pygame.transform.scale(load_image('background.gif'), (self.width, self.height))
+        self.background = pygame.transform.scale(
+            load_image('background.gif'), (self.width, self.height))
         pygame.display.set_caption('GMD v 1.0       by o2o and SAVITSKY')
-        self.init_buttons()
 
-    def init_buttons(self) -> None:
-        self.butt_group = []
+    def init_start_buttons(self) -> None:
+        self.start_butt_group = []
 
-        self.play_button = Button(load_image('play_button.png'), (self.width * 0.4, self.height * 0.2), 0.9)
-        self.play_button.set_signal_func(self.start_game_button)
-        self.butt_group.append(self.play_button)
+        self.levels_button = Button(load_image(
+            'play_button.png'), (self.width * 0.4, self.height * 0.2), 0.9)
+        self.levels_button.set_callback_func(self.levels_window)
+        self.start_butt_group.append(self.levels_button)
 
-        self.icons_button = Button(load_image('icon_set_button.png'), (self.width * 0.2, self.height * 0.2), 0.9)
-        self.icons_button.set_signal_func(self.set_icon_button)
-        self.butt_group.append(self.icons_button)
+        self.icons_button = Button(load_image(
+            'icon_set_button.png'), (self.width * 0.2, self.height * 0.2), 0.9)
+        self.icons_button.set_callback_func(self.set_icon_button)
+        self.start_butt_group.append(self.icons_button)
+
+        self.redactor_button = Button(load_image(
+            'editor_button.png'), (self.width * 0.6, self.height * 0.2), 0.9)
+        self.redactor_button.set_callback_func(self.editor_button)
+        self.start_butt_group.append(self.redactor_button)
+
+    def init_levels_buttons(self):
+        self.levels_button_group = []
+
+        self.back_button = Button(load_image('back_button.png'), (0, 0), 0.8)
+        self.back_button.set_callback_func(self.back_button_callback)
+        self.levels_button_group.append(self.back_button)
         
-        self.redactor_button = Button(load_image('editor_button.png'), (self.width * 0.6, self.height * 0.2), 0.9)
-        self.redactor_button.set_signal_func(self.editor_button)
-        self.butt_group.append(self.redactor_button)
-    
+        self.level_1_button = Button(load_image('level_1_button.png'), (self.width * 0.1, self.height * 0.25), 2.5)
+        self.level_1_button.set_callback_func(self.level_1_button_callback)
+        self.levels_button_group.append(self.level_1_button)
+        
+        self.level_2_button = Button(load_image('level_2_button.png'), (self.width * 0.4, self.height * 0.25), 2.5)
+        self.level_2_button.set_callback_func(self.level_2_button_callback)
+        self.levels_button_group.append(self.level_2_button)
+        
+        self.level_3_button = Button(load_image('level_3_button.png'), (self.width * 0.7, self.height * 0.25), 2.5)
+        self.level_3_button.set_callback_func(self.level_3_button_callback)
+        self.levels_button_group.append(self.level_3_button)
+
     def init_background(self):
         self.screen.blit(self.background, (0, 0))
 
-    def start_game(self) -> None:
-        clock = pygame.time.Clock()
-        while self.running:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    self.running = False
-
-            self.screen.fill((0, 0, 0))
-            clock.tick(self.FPS)
-            pygame.display.flip()
-
     def start_window(self) -> None:
         clock = pygame.time.Clock()
+        
+        self.init_start_buttons()
+        self.screen.fill((0, 0, 0))
+        self.init_background()
+        for i in self.start_butt_group:
+            i.draw(self.screen)
+        
         while self.running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.running = False
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                    for i in self.butt_group:
+                    for i in self.start_butt_group:
                         i.click(event.pos)
-
-            self.screen.fill((0, 0, 0))
-            self.init_background()
-            for i in self.butt_group:
-                i.draw(self.screen)
             pygame.display.flip()
             clock.tick(self.FPS)
 
-    def start_game_button(self):
-        print('start_game_button')
+    def levels_window(self) -> None:
+        self.levels_button = True
+        clock = pygame.time.Clock()
+        
+        self.init_levels_buttons()
+        self.screen.fill((0, 0, 0))
+        for i in self.levels_button_group:
+            i.draw(self.screen)
+        
+        while self.running and self.levels_button:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.running = False
+                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    for i in self.levels_button_group:
+                        i.click(event.pos)
+                        
+            pygame.display.flip()
+            clock.tick(self.FPS)
 
-    def set_icon_button(self):
+    def back_button_callback(self) -> None:
+        self.levels_button = False
+        self.start_window()
+    
+    def level_1_button_callback(self) -> None:
+        print('level1')
+
+    def level_2_button_callback(self) -> None:
+        print('level2')
+        
+    def level_3_button_callback(self) -> None:
+        print('level3')
+
+    def set_icon_button(self) -> None:
         print('set_icon_button')
 
-    def editor_button(self):
+    def editor_button(self) -> None:
         print('editor_button')
 
 
