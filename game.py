@@ -1,3 +1,4 @@
+from editor import Redactor, loadLevel, Stone
 import pygame
 import os
 
@@ -44,6 +45,7 @@ class GMD:
         global screen
         pygame.init()
         pygame.mixer.init()
+        self.clock = pygame.time.Clock()
         pygame.mixer.music.load('data/menuLoop.mp3')
         pygame.mixer.music.play(-1)
         self.width = width
@@ -54,6 +56,8 @@ class GMD:
         self.screen = pygame.display.set_mode((self.width, self.height))
         self.background = pygame.transform.scale(
             load_image('background.gif'), (self.width, self.height))
+        self.background1 = pygame.transform.scale(
+            load_image('background.png'), (self.width, self.height))
         pygame.display.set_caption('GMD v 1.0       by o2o and SAVITSKY')
 
     def init_start_buttons(self) -> None:
@@ -71,7 +75,7 @@ class GMD:
 
         self.redactor_button = Button(load_image(
             'editor_button.png'), (self.width * 0.6, self.height * 0.2), 0.9)
-        self.redactor_button.set_callback_func(self.editor_button)
+        self.redactor_button.set_callback_func(self.editor)
         self.start_butt_group.append(self.redactor_button)
 
     def init_levels_buttons(self):
@@ -97,8 +101,6 @@ class GMD:
         self.screen.blit(self.background, (0, 0))
 
     def start_window(self) -> None:
-        clock = pygame.time.Clock()
-        
         self.init_start_buttons()
         self.screen.fill((0, 0, 0))
         self.init_background()
@@ -113,14 +115,14 @@ class GMD:
                     for i in self.start_butt_group:
                         i.click(event.pos)
             pygame.display.flip()
-            clock.tick(self.FPS)
+            self.clock.tick(self.FPS)
 
     def levels_window(self) -> None:
         self.levels_button = True
-        clock = pygame.time.Clock()
         
-        self.init_levels_buttons()
         self.screen.fill((0, 0, 0))
+        self.screen.blit(self.background1, (0, 0))
+        self.init_levels_buttons()
         for i in self.levels_button_group:
             i.draw(self.screen)
         
@@ -133,7 +135,7 @@ class GMD:
                         i.click(event.pos)
                         
             pygame.display.flip()
-            clock.tick(self.FPS)
+            self.clock.tick(self.FPS)
 
     def back_button_callback(self) -> None:
         self.levels_button = False
@@ -151,12 +153,12 @@ class GMD:
     def set_icon_button(self) -> None:
         print('set_icon_button')
 
-    def editor_button(self) -> None:
-        print('editor_button')
+    def editor(self) -> None:
+        print('editor')
+
 
 
 if __name__ == "__main__":
-    screen = None
     gmd = GMD(240, 1500, 800)
     gmd.start_window()
     pygame.quit()

@@ -45,7 +45,7 @@ def loadLevel(level_nr=1):
 class Player(pygame.sprite.Sprite):
     def __init__(self, pos):
         super().__init__(all_sprites)
-        self.image = pygame.transform.scale(load_image('icon_1.png '), (31, 31))
+        self.image = pygame.transform.scale(load_image('icon_1.png'), (31, 31))
         self.mask = pygame.mask.from_surface(self.image)
         self.rect = self.image.get_rect()
 
@@ -264,7 +264,7 @@ if __name__ == '__main__':
 
     all_sprites = pygame.sprite.Group()
     person = None
-    level_nr = 1    
+    level_nr = 1
     a = Redactor()
     loadLevel(level_nr)
 
@@ -277,7 +277,7 @@ if __name__ == '__main__':
                 person.rect.y = event.pos[1]
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 Stone(event.pos)
-            if event.type == pygame.KEYDOWN: 
+            if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE and not person.collide:
                     person.jump_bul = True
             elif event.type == pygame.KEYUP:
