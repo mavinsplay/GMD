@@ -21,7 +21,7 @@ def load_image(name: str, colorkey=None) -> pygame.image:
 
 class Button(pygame.sprite.Sprite):
     def __init__(self, image: pygame.image,
-                 position: tuple, scale: int) -> None:
+                 position: tuple, scale: float) -> None:
         self.signal_func = None
         width = image.get_width()
         height = image.get_height()
@@ -154,7 +154,80 @@ class GMD:
         print('set_icon_button')
 
     def editor(self) -> None:
-        print('editor')
+        all_sprites = pygame.sprite.Group()
+        redactor = Redactor(self.width, self.height)
+        # while running2:
+        #     for event in pygame.event.get():
+        #         if event.type == pygame.QUIT:
+        #             running2 = False
+        #         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+        #             if event.pos[1] < height * 0.88:
+        #                 click = True
+        #                 for i in all_sprites:
+        #                     if i.rect.collidepoint(event.pos[0], event.pos[1]) or (
+        #                             self.posit == 3 and i.rect.collidepoint(event.pos[0], event.pos[1] + int(height * scale))):
+        #                         click = False
+        #                 if click:
+        #                     if self.posit == 0:
+        #                         Stone((event.pos[0] - event.pos[0] % int(width * scale), event.pos[1] - event.pos[1] % int(height * scale)), width, height, scale, all_sprites2)
+        #                     elif self.posit == 1:
+        #                         Stone((event.pos[0] - event.pos[0] % int(width * scale), event.pos[1] - event.pos[1] % int(height * scale)), width, height, scale, all_sprites2, True)
+        #                     elif self.posit == 2:
+        #                         self.player1.rect.x = event.pos[0] - event.pos[0] % int(width * scale)
+        #                         self.player1.rect.y = event.pos[1] - event.pos[1] % int(height * scale)
+        #                     elif self.posit == 3:
+        #                         Portal((event.pos[0] - event.pos[0] % int(width * scale), event.pos[1] - event.pos[1] % int(height * scale)), width, height, scale, all_sprites2)
+        #             else:
+        #                 if self.stone.rect.collidepoint(event.pos):
+        #                     self.posit = 0
+        #                     self.screen1.rect.x = width * 0.1
+        #                 elif self.trap.rect.collidepoint(event.pos):
+        #                     self.posit = 1
+        #                     self.screen1.rect.x = width * 0.2
+        #                 elif self.player.rect.collidepoint(event.pos):
+        #                     self.posit = 2
+        #                     self.screen1.rect.x = width * 0.3
+        #                 elif self.portal.rect.collidepoint(event.pos):
+        #                     self.posit = 3
+        #                     self.screen1.rect.x = width * 0.4
+        #         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 3:
+        #             if event.pos[1] < height * 0.88:
+        #                 for i in all_sprites2:
+        #                     if i != self.player1 and i.rect.collidepoint(event.pos):
+        #                         all_sprites2.remove(i)
+
+        #         if event.type == pygame.KEYDOWN:
+        #             if event.key == pygame.K_LEFT:
+        #                 left = True
+        #                 for i in all_sprites2:
+        #                     if i.rect.x == 0:
+        #                         left = False
+        #                 if left:
+        #                     for i in all_sprites2:
+        #                         i.rect.x -= width * scale
+        #             elif event.key == pygame.K_RIGHT:
+        #                 for i in all_sprites2:
+        #                     i.rect.x += width * scale
+        #             elif event.key == pygame.K_DOWN:
+        #                 for i in all_sprites2:
+        #                     i.rect.y += height * scale
+        #             elif event.key == pygame.K_UP:
+        #                 up = True
+        #                 for i in all_sprites2:
+        #                     if i.rect.y == 0:
+        #                         up = False
+        #                 if up:
+        #                     for i in all_sprites2:
+        #                         i.rect.y -= height * scale
+
+        #     screen2.fill((0, 255, 0))
+        #     all_sprites2.draw(screen2)
+        #     all_sprites.draw(screen2)
+        #     for x in range(int(width / (width * scale))):
+        #         for y in range(int(height * 0.9 / (height * scale))):
+        #             pygame.draw.rect(screen2, (255, 255, 255), (int(x * width * scale), int(y * height * scale), int(width * scale), int(height * scale)), 1)
+        #     clock.tick(50)
+        #     pygame.display.flip()
 
 
 
