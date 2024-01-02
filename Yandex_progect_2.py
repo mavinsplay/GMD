@@ -112,7 +112,7 @@ class Portal(pygame.sprite.Sprite):
     def __init__(self, pos, width, height, scale, all, var=1):
         super().__init__(all)
 
-        self.image = pygame.transform.scale(load_image("ShipPortal.png", -1).subsurface(50, 528, 120, 210),
+        self.image = pygame.transform.scale(load_image("Portals.png", -1).subsurface(50, 528, 120, 210),
                                             (int(width * scale), int(height * scale * 2)))
         self.mask = pygame.mask.from_surface(self.image)
         self.rect = self.image.get_rect()

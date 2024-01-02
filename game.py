@@ -133,12 +133,13 @@ class GMD:
                     self.back_button.click(event.pos)
             pygame.display.flip()
             self.clock.tick(self.FPS)
-        
+
     def start_level(self, level_nr=1):
         all_sprites = pygame.sprite.Group()
         scale = 0.04
         v = 10000
-        person = loadLevel(self.width, self.height, scale, all_sprites, level_nr)
+        person = loadLevel(self.width, self.height,
+                           scale, all_sprites, level_nr)
         while self.running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -154,11 +155,12 @@ class GMD:
             if person.jump_bul and person.g <= -person.height * 0.13:
                 person.g = person.height * 0.13
 
-            all_sprites.update() 
+            all_sprites.update()
             self.screen.fill((255, 255, 255))
             all_sprites.draw(self.screen)
             self.clock.tick(v / self.FPS)
             pygame.display.flip()
+
 
 if __name__ == "__main__":
     gmd = GMD(240, 1500, 800)
