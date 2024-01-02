@@ -46,15 +46,19 @@ def loadLevel(width: int, height: int, scale: float, all_sprites: pygame.sprite.
 class Player(pygame.sprite.Sprite):
     def __init__(self, pos, width, height, scale, all):
         super().__init__(all)
-        self.image = pygame.transform.scale(load_image('icon_1.png', -1), (int(width * scale), int(height * scale)))
+        self.image = pygame.transform.scale(load_image('icon_4.png'), (int(width * scale), int(height * scale)))
         self.mask = pygame.mask.from_surface(self.image)
         self.rect = self.image.get_rect()
 
         self.rect.x = pos[0]
         self.rect.y = pos[1]
 
-        self.jump = -12
+        self.width = int(width * scale)
+        self.height = int(height * scale)
+
         self.jump_bul = False
+
+        self.g = self.height * 0.02
 
         self.collide = False
 
@@ -62,23 +66,22 @@ class Player(pygame.sprite.Sprite):
         self.collide = True
         for i in all_sprites:
             if pygame.sprite.collide_mask(i, self) and type(i) == Stone:
-                if i.trap or abs(self.rect.y - i.rect.y) < 20:
+                if i.trap or abs(self.rect.y - i.rect.y) < int(self.height * 0.5):
+                    print(self.height + self.rect.y - i.rect.y - 1)
                     sys.exit()  # TODO
-                if abs(self.rect.y - i.rect.y) < 30:
-                    print(30 + self.rect.y - i.rect.y)
-                    self.rect.y -= 30 + self.rect.y - i.rect.y
+                if abs(self.rect.y - i.rect.y) < self.height:
+                    self.rect.y -= self.height + self.rect.y - i.rect.y - 1
 
                 self.collide = False
+            if pygame.sprite.collide_mask(i, self) and type(i) == Portal:
+                self.g *= -1
 
-        if self.collide and self.jump < 0:
-            self.rect.y += 2
+        self.g -= self.height * 0.01
 
-        self.jump -= 1
-        if self.jump > 0:
-            self.rect.y -= 2
-
-        if not self.collide:
-            self.jump = 0
+        if self.g ** 2 > int(self.height * 0.5):
+            self.rect.y -= -1 * (int(self.height * 0.5) - 2) ** 0.5
+        elif self.g != 0:
+            self.rect.y -= int(self.g * abs(self.g))
 
 
 class Stone(pygame.sprite.Sprite):
@@ -109,7 +112,8 @@ class Portal(pygame.sprite.Sprite):
     def __init__(self, pos, width, height, scale, all, var=1):
         super().__init__(all)
 
-        self.image = pygame.transform.scale(load_image("icon_2.png", -1), (int(width * scale), int(height * scale * 1.5)))
+        self.image = pygame.transform.scale(load_image("ShipPortal.png", -1).subsurface(50, 528, 120, 210),
+                                            (int(width * scale), int(height * scale * 2)))
         self.mask = pygame.mask.from_surface(self.image)
         self.rect = self.image.get_rect()
 
@@ -136,29 +140,31 @@ class Redactor:
 
         all_sprites = pygame.sprite.Group()
 
-        image = pygame.Surface((width, height * 0.12))
+        scale = 0.04
+
+        scale_screen = 0.2
+
+        image = pygame.Surface((width, height * scale_screen))
         image.fill((255, 120, 120))
         self.screen = pygame.sprite.Sprite(all_sprites)
         self.screen.image = image.convert_alpha()
         self.screen.rect = self.screen.image.get_rect()
-        self.screen.rect.y = height * 0.88
+        self.screen.rect.y = height * (1 - scale_screen)
 
-        image = pygame.Surface((60,  height * 0.12))
+        image = pygame.Surface((width * scale, height * scale_screen))
         image.fill((0, 120, 120))
         self.screen1 = pygame.sprite.Sprite(all_sprites)
         self.screen1.image = image.convert_alpha()
         self.screen1.rect = self.screen1.image.get_rect()
         self.screen1.rect.x = width * 0.1
-        self.screen1.rect.y = height * 0.88
+        self.screen1.rect.y = height * (1 - scale_screen)
 
-        scale = 0.04
+        self.stone = Stone((width * 0.1, height * (1 - scale_screen / 1.7)), width, height, scale, all_sprites)
 
-        self.stone = Stone((width * 0.1, height * 0.9), width, height, scale, all_sprites)
+        self.trap = Stone((width * 0.2, height * (1 - scale_screen / 1.7)), width, height, scale, all_sprites, True)
+        self.player = Player((width * 0.3, height * (1 - scale_screen / 1.7)), width, height, scale, all_sprites)
 
-        self.trap = Stone((width * 0.2, height * 0.9), width, height, scale, all_sprites, True)
-        self.player = Player((width * 0.3, height * 0.9), width, height, scale, all_sprites)
-
-        self.portal = Portal((width * 0.4, height * 0.9), width, height, scale, all_sprites)
+        self.portal = Portal((width * 0.4, height * (1 - scale_screen / 1.4)), width, height, scale, all_sprites)
 
         all_sprites2 = pygame.sprite.Group()
 
@@ -171,22 +177,29 @@ class Redactor:
                 if event.type == pygame.QUIT:
                     running2 = False
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                    if event.pos[1] < height * 0.88:
+                    if event.pos[1] < height * (1 - scale_screen):
                         click = True
-                        for i in all_sprites:
+                        for i in all_sprites2:
                             if i.rect.collidepoint(event.pos[0], event.pos[1]) or (
-                                    self.posit == 3 and i.rect.collidepoint(event.pos[0], event.pos[1] + int(height * scale))):
+                                    self.posit == 3 and i.rect.collidepoint(event.pos[0],
+                                                                            event.pos[1] + int(height * scale))):
                                 click = False
                         if click:
                             if self.posit == 0:
-                                Stone((event.pos[0] - event.pos[0] % int(width * scale), event.pos[1] - event.pos[1] % int(height * scale)), width, height, scale, all_sprites2)
+                                Stone((event.pos[0] - event.pos[0] % int(width * scale),
+                                       event.pos[1] - event.pos[1] % int(height * scale)), width, height, scale,
+                                      all_sprites2)
                             elif self.posit == 1:
-                                Stone((event.pos[0] - event.pos[0] % int(width * scale), event.pos[1] - event.pos[1] % int(height * scale)), width, height, scale, all_sprites2, True)
+                                Stone((event.pos[0] - event.pos[0] % int(width * scale),
+                                       event.pos[1] - event.pos[1] % int(height * scale)), width, height, scale,
+                                      all_sprites2, True)
                             elif self.posit == 2:
                                 self.player1.rect.x = event.pos[0] - event.pos[0] % int(width * scale)
                                 self.player1.rect.y = event.pos[1] - event.pos[1] % int(height * scale)
                             elif self.posit == 3:
-                                Portal((event.pos[0] - event.pos[0] % int(width * scale), event.pos[1] - event.pos[1] % int(height * scale)), width, height, scale, all_sprites2)
+                                Portal((event.pos[0] - event.pos[0] % int(width * scale),
+                                        event.pos[1] - event.pos[1] % int(height * scale)), width, height, scale,
+                                       all_sprites2)
                     else:
                         if self.stone.rect.collidepoint(event.pos):
                             self.posit = 0
@@ -201,7 +214,7 @@ class Redactor:
                             self.posit = 3
                             self.screen1.rect.x = width * 0.4
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 3:
-                    if event.pos[1] < height * 0.88:
+                    if event.pos[1] < height * (1 - scale_screen):
                         for i in all_sprites2:
                             if i != self.player1 and i.rect.collidepoint(event.pos):
                                 all_sprites2.remove(i)
@@ -233,9 +246,10 @@ class Redactor:
             screen2.fill((0, 255, 0))
             all_sprites2.draw(screen2)
             all_sprites.draw(screen2)
-            for x in range(int(width / (width * scale))):
-                for y in range(int(height * 0.9 / (height * scale))):
-                    pygame.draw.rect(screen2, (255, 255, 255), (int(x * width * scale), int(y * height * scale), int(width * scale), int(height * scale)), 1)
+            for y in range(int(height * (1 - scale_screen) / (height * scale))):
+                for x in range(int(width / (width * scale))):
+                    pygame.draw.rect(screen2, (255, 255, 255), (
+                    int(x * width * scale), int(y * height * scale), int(width * scale), int(height * scale)), 1)
             clock.tick(50)
             pygame.display.flip()
 
@@ -278,17 +292,18 @@ class Redactor:
 if __name__ == '__main__':
     pygame.init()
     pygame.display.set_caption('Инициализация игры')
-    size = width, height = 1200, 800
+    size = width, height = 1000, 1000
 
     screen = pygame.display.set_mode(size)
 
     clock = pygame.time.Clock()
     running = True
-    scale = 0.2
+
     all_sprites = pygame.sprite.Group()
     level_nr = 1
+    scale = 0.04
     a = Redactor(width, height)
-    person = loadLevel(width, height, 0.04, all_sprites, level_nr)
+    person = loadLevel(width, height, scale, all_sprites, level_nr)
 
     while running:
         for event in pygame.event.get():
@@ -306,8 +321,8 @@ if __name__ == '__main__':
                 if event.key == pygame.K_SPACE:
                     person.jump_bul = False
 
-        if person.jump_bul and not person.collide:
-            person.jump = 30
+        if person.jump_bul and person.g <= -person.height * 0.13:
+            person.g = person.height * 0.13
 
         all_sprites.update()
         screen.fill((255, 255, 255))
