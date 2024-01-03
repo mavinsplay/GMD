@@ -1,142 +1,18 @@
 import pygame
 import sys
 import os
+from objects import *
 
 
-def load_image(name, colorkey=None):
-    fullname = os.path.join('data', name)
-    # если файл не существует, то выходим
-    if not os.path.isfile(fullname):
-        print(f"Файл с изображением '{fullname}' не найден")
-        sys.exit()
-    image = pygame.image.load(fullname)
-    if colorkey is not None:
-        image = image.convert()
-        if colorkey == -1:
-            colorkey = image.get_at((0, 0))
-        image.set_colorkey(colorkey)
-    else:
-        image = image.convert_alpha()
-    return image
-
-
-def loadLevel(width: int, height: int, scale: float, all_sprites: pygame.sprite.Group, level_nr=1):
-    filename = "geometry_levels/" + str(level_nr)
-    if not os.path.isfile(filename):
-        return False
-    f = open(filename, "r")
-    data = f.readlines()
-    x, y = 0, 0
-    for row in data:
-        for ch in row:
-            if ch == "O":
-                Stone((x, y), width, height, scale, all_sprites)
-            elif ch == "S":
-                Stone((x, y), width, height, scale, all_sprites, True)
-            elif ch == "~":
-                person = Player((x, y), width, height, scale, all_sprites)
-            elif ch == "A":
-                Portal((x, y), width, height, scale, all_sprites)
-            x += width * scale
-        x = 0
-        y += height * scale
-    return person
-
-
-class Player(pygame.sprite.Sprite):
-    def __init__(self, pos, width, height, scale, all):
-        super().__init__(all)
-        self.image = pygame.transform.scale(load_image('icon_4.png'), (int(width * scale), int(height * scale)))
-        self.mask = pygame.mask.from_surface(self.image)
-        self.rect = self.image.get_rect()
-
-        self.rect.x = pos[0]
-        self.rect.y = pos[1]
-
-        self.width = int(width * scale)
-        self.height = int(height * scale)
-
-        self.jump_bul = False
-
-        self.g = self.height * 0.02
-
-        self.collide = False
-
-    def update(self):
-        self.collide = True
-        for i in all_sprites:
-            if pygame.sprite.collide_mask(i, self) and type(i) == Stone:
-                if i.trap or abs(self.rect.y - i.rect.y) < int(self.height * 0.5):
-                    print(self.height + self.rect.y - i.rect.y - 1)
-                    sys.exit()  # TODO
-                if abs(self.rect.y - i.rect.y) < self.height:
-                    self.rect.y -= self.height + self.rect.y - i.rect.y - 1
-
-                self.collide = False
-            if pygame.sprite.collide_mask(i, self) and type(i) == Portal:
-                self.g *= -1
-
-        self.g -= self.height * 0.01
-
-        if self.g ** 2 > int(self.height * 0.5):
-            self.rect.y -= -1 * (int(self.height * 0.5) - 2) ** 0.5
-        elif self.g != 0:
-            self.rect.y -= int(self.g * abs(self.g))
-
-
-class Stone(pygame.sprite.Sprite):
-    def __init__(self, pos, width, height, scale, all, trap=False):
-        super().__init__(all)
-        screen1 = pygame.Surface((30, 30))
-        if not trap:
-            screen1.fill((125, 125, 125))
-        else:
-            screen1.fill((255, 0, 255))
-            pygame.draw.polygon(screen1, (0, 0, 0), ((0, 30), (15, 0), (30, 30)))
-            pygame.draw.polygon(screen1, (255, 255, 255), ((0, 29), (15, 0), (30, 29)), 1)
-            screen1.set_colorkey((255, 0, 255))
-        self.image = pygame.transform.scale(screen1.convert_alpha(), (int(width * scale), int(height * scale)))
-        self.rect = self.image.get_rect()
-        self.mask = pygame.mask.from_surface(self.image)
-
-        self.rect.x = pos[0]
-        self.rect.y = pos[1]
-
-        self.trap = trap
-
-    def update(self):
-        self.rect.x -= 10
-
-
-class Portal(pygame.sprite.Sprite):
-    def __init__(self, pos, width, height, scale, all, var=1):
-        super().__init__(all)
-
-        self.image = pygame.transform.scale(load_image("Portals.png", -1).subsurface(50, 528, 120, 210),
-                                            (int(width * scale), int(height * scale * 2)))
-        self.mask = pygame.mask.from_surface(self.image)
-        self.rect = self.image.get_rect()
-
-        self.rect.x = pos[0]
-        self.rect.y = pos[1]
-
-        self.var = var
-
-    def update(self):
-        self.rect.x -= 10
-
-
-class Redactor:
-    def __init__(self, width: int, height: int):
+class Editor:
+    def __init__(self, width: int, height: int, screen):
         super().__init__()
 
         pygame.init()
         pygame.display.set_caption('Редактор уровня')
 
-        screen2 = pygame.display.set_mode((width, height))
-
         clock = pygame.time.Clock()
-        running2 = True
+        running = True
 
         all_sprites = pygame.sprite.Group()
 
@@ -150,6 +26,9 @@ class Redactor:
         self.screen.image = image.convert_alpha()
         self.screen.rect = self.screen.image.get_rect()
         self.screen.rect.y = height * (1 - scale_screen)
+
+        btn_save = Button(load_image('save.png'), (width * 0.7, height * (1 - scale_screen)), 0.3)
+        btn_close = Button(load_image('back_button.png'), (width * 0.7, height * (1 - scale_screen + btn_save.image.get_height() / width)), 0.6)
 
         image = pygame.Surface((width * scale, height * scale_screen))
         image.fill((0, 120, 120))
@@ -168,19 +47,26 @@ class Redactor:
 
         all_sprites2 = pygame.sprite.Group()
 
+        fon = pygame.sprite.Sprite(all_sprites2)
+        fon.image = pygame.transform.scale(load_image('editor_background.png'), (width, height))
+        fon.rect = fon.image.get_rect()
+
         self.player1 = Player((width * scale * 7, height * scale * 9), width, height, scale, all_sprites2)
 
         self.posit = 0
 
-        while running2:
+        up, down, right, left = False, False, False, False
+
+        while running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    running2 = False
+                    sys.exit()
+
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     if event.pos[1] < height * (1 - scale_screen):
                         click = True
                         for i in all_sprites2:
-                            if i.rect.collidepoint(event.pos[0], event.pos[1]) or (
+                            if i != fon and i.rect.collidepoint(event.pos[0], event.pos[1]) or (
                                     self.posit == 3 and i.rect.collidepoint(event.pos[0],
                                                                             event.pos[1] + int(height * scale))):
                                 click = False
@@ -201,6 +87,11 @@ class Redactor:
                                         event.pos[1] - event.pos[1] % int(height * scale)), width, height, scale,
                                        all_sprites2)
                     else:
+                        if btn_save.rect.collidepoint(event.pos):
+                            self.save(all_sprites2, width, height, scale)
+                            btn_save.update('save_use.png')
+                        elif btn_close.rect.collidepoint(event.pos):
+                            btn_close.update('back_button_2.png')
                         if self.stone.rect.collidepoint(event.pos):
                             self.posit = 0
                             self.screen1.rect.x = width * 0.1
@@ -213,47 +104,68 @@ class Redactor:
                         elif self.portal.rect.collidepoint(event.pos):
                             self.posit = 3
                             self.screen1.rect.x = width * 0.4
+
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 3:
                     if event.pos[1] < height * (1 - scale_screen):
                         for i in all_sprites2:
-                            if i != self.player1 and i.rect.collidepoint(event.pos):
+                            if i not in [self.player1, fon] and i.rect.collidepoint(event.pos):
                                 all_sprites2.remove(i)
+
+                if event.type == pygame.MOUSEBUTTONUP:
+                    btn_save.update('save.png')
+                    if btn_close.rect.collidepoint(event.pos):
+                        running = False
+                    else:
+                        btn_close.update('back_button.png')
 
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_LEFT:
                         left = True
-                        for i in all_sprites2:
-                            if i.rect.x == 0:
-                                left = False
-                        if left:
-                            for i in all_sprites2:
-                                i.rect.x -= width * scale
                     elif event.key == pygame.K_RIGHT:
-                        for i in all_sprites2:
-                            i.rect.x += width * scale
+                        right = True
                     elif event.key == pygame.K_DOWN:
-                        for i in all_sprites2:
-                            i.rect.y += height * scale
+                        down = True
                     elif event.key == pygame.K_UP:
                         up = True
-                        for i in all_sprites2:
-                            if i.rect.y == 0:
-                                up = False
-                        if up:
-                            for i in all_sprites2:
-                                i.rect.y -= height * scale
 
-            screen2.fill((0, 255, 0))
-            all_sprites2.draw(screen2)
-            all_sprites.draw(screen2)
+                if event.type == pygame.KEYUP:
+                    if event.key == pygame.K_LEFT:
+                        left = False
+                    elif event.key == pygame.K_RIGHT:
+                        right = False
+                    elif event.key == pygame.K_DOWN:
+                        down = False
+                    elif event.key == pygame.K_UP:
+                        up = False
+
+            for i in all_sprites2:
+                if i != fon and i.rect.y == 0:
+                    up = False
+                if i != fon and i.rect.x == 0:
+                    left = False
+
+            for i in all_sprites2:
+                if i != fon:
+                    if left:
+                        i.rect.x -= width * scale
+                    elif up:
+                        i.rect.y -= height * scale
+                    elif right:
+                        i.rect.x += width * scale
+                    elif down:
+                        i.rect.y += height * scale
+
+            all_sprites2.draw(screen)
+            all_sprites.draw(screen)
+            btn_save.draw(screen)
+            btn_close.draw(screen)
+
             for y in range(int(height * (1 - scale_screen) / (height * scale))):
                 for x in range(int(width / (width * scale))):
-                    pygame.draw.rect(screen2, (255, 255, 255), (
+                    pygame.draw.rect(screen, (255, 255, 255), (
                     int(x * width * scale), int(y * height * scale), int(width * scale), int(height * scale)), 1)
             clock.tick(50)
             pygame.display.flip()
-
-        self.save(all_sprites2, width, height, scale, level_nr)
 
     def save(self, all_sprites, width, height, scale, level_nr=1):
         filename = "geometry_levels/" + str(level_nr + 1)
@@ -294,15 +206,19 @@ if __name__ == '__main__':
     pygame.display.set_caption('Инициализация игры')
     size = width, height = 1000, 1000
 
+    all_sprites = pygame.sprite.Group()
+    level_nr = 1
+    scale = 0.04
+
     screen = pygame.display.set_mode(size)
+    fon = pygame.sprite.Sprite(all_sprites)
+    fon.image = pygame.transform.scale(load_image('editor_background.png'), size)
+    fon.rect = fon.image.get_rect()
 
     clock = pygame.time.Clock()
     running = True
 
-    all_sprites = pygame.sprite.Group()
-    level_nr = 1
-    scale = 0.04
-    a = Redactor(width, height)
+    a = Editor(width, height, screen)
     person = loadLevel(width, height, scale, all_sprites, level_nr)
 
     while running:
@@ -322,11 +238,13 @@ if __name__ == '__main__':
                     person.jump_bul = False
 
         if person.jump_bul and person.g <= -person.height * 0.13:
-            person.g = person.height * 0.13
+            person.g = person.height * 0.13 * person.g // abs(person.g) * -1
 
-        all_sprites.update()
-        screen.fill((255, 255, 255))
+        for i in all_sprites:
+            if i != fon:
+                i.update()
         all_sprites.draw(screen)
         clock.tick(50)
         pygame.display.flip()
     pygame.quit()
+
