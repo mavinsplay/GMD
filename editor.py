@@ -79,6 +79,9 @@ class Editor:
 
         while running2:
             for event in pygame.event.get():
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        return
                 if event.type == pygame.QUIT:
                     running2 = False
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:

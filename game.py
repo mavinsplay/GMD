@@ -9,20 +9,26 @@ class GMD:
         pygame.init()
         pygame.mixer.init()
         self.clock = pygame.time.Clock()
-        pygame.mixer.music.load('data/menuLoop.mp3')
-        pygame.mixer.music.play(-1)
         self.width = width
         self.height = height
         self.running = True
         self.levels_buttons = True
         self.editor_screen = True
+        self.icons_buttons = True
         self.FPS = fps
+        self.init_music()
         self.screen = pygame.display.set_mode((self.width, self.height))
         self.background = pygame.transform.scale(
             load_image('background.gif'), (self.width, self.height))
         self.background1 = pygame.transform.scale(
             load_image('background.png'), (self.width, self.height))
         pygame.display.set_caption('GMD v 1.0       by o2o and SAVITSKY')
+
+    def init_music(self, path: str = 'data/menuLoop.mp3', time: int = -1) -> None:
+        pygame.mixer.music.stop()
+        pygame.mixer.music.unload()
+        pygame.mixer.music.load(path)
+        pygame.mixer.music.play(-1)
 
     def init_start_buttons(self) -> None:
         self.start_butt_group = []
@@ -65,6 +71,25 @@ class GMD:
         self.level_3_button.set_callback_func(lambda: self.start_level(3))
         self.levels_button_group.append(self.level_3_button)
 
+    def init_icons_buttons(self) -> None:
+        self.icons_buttons_group = []
+
+        self.back_button = Button(load_image('back_button.png'), (0, 0), 0.8)
+        self.back_button.set_callback_func(
+            lambda: self.back_button_callback('icons-to-menu'))
+        self.icons_buttons_group.append(self.back_button)
+
+    def back_button_callback(self, call: str) -> None:
+        if call == 'play-to-menu':
+            self.levels_buttons = False
+            self.start_window()
+        elif call == 'editor-to-menu':
+            self.editor_screen = False
+            self.start_window()
+        elif call == 'icons-to-menu':
+            self.icons_buttons = False
+            self.start_window()
+
     def init_background(self) -> None:
         self.screen.blit(self.background, (0, 0))  # доделать до анимации
 
@@ -105,36 +130,36 @@ class GMD:
             pygame.display.flip()
             self.clock.tick(self.FPS)
 
-    def back_button_callback(self, call) -> None:
-        if call == 'play-to-menu':
-            self.levels_buttons = False
-            self.start_window()
-        elif call == 'editor-to-menu':
-            self.editor_screen = False
-            self.start_window()
-
     def set_icon_button(self) -> None:
-        print('set_icon_button')
+        self.icons_buttons = True
+        self.screen.fill((0, 0, 0))
+        self.screen.blit(self.background1, (0, 0))
+        self.screen.blit(pygame.transform.scale(load_image('editor_surface.png'), (self.width, self.height * 0.4)), (0, self.height * 0.6))
+        self.init_icons_buttons()
+        for i in self.icons_buttons_group:
+            i.draw(self.screen)
+        while self.running and self.icons_buttons:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.running = False
+                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    for i in self.icons_buttons_group:
+                        i.click(event.pos)
+            pygame.display.flip()
+            self.clock.tick(self.FPS)
 
     def editor(self) -> None:
+        pygame.mixer.music.stop()
+        self.screen.fill((0, 0, 0))
         self.editor_screen = True
         self.back_button = Button(load_image('back_button.png'), (0, 0), 0.3)
         self.back_button.set_callback_func(
             lambda: self.back_button_callback('editor-to-menu'))
-        editor = Editor(self.width, self.height)
-        self.screen.fill((0, 0, 0))
-        editor.draw(self.screen, self.width, self.height)
         self.back_button.draw(self.screen)
-        while self.running and self.editor_screen:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    self.running = False
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    self.back_button.click(event.pos)
-            pygame.display.flip()
-            self.clock.tick(self.FPS)
+        editor = Editor(self.width, self.height)
 
-    def start_level(self, level_nr=1):
+    def start_level(self, level_nr: int = 1):
+        pygame.mixer.music.stop()
         all_sprites = pygame.sprite.Group()
         scale = 0.04
         v = 10000
@@ -148,7 +173,7 @@ class GMD:
                     if event.key == pygame.K_SPACE and not person.collide:
                         person.jump_bul = True
                     if event.key == pygame.K_ESCAPE:
-                        return self.levels_window()
+                        return (self.init_music(), self.levels_window())
                 elif event.type == pygame.KEYUP:
                     if event.key == pygame.K_SPACE:
                         person.jump_bul = False
