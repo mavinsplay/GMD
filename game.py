@@ -5,7 +5,6 @@ import pygame
 
 class GMD:
     def __init__(self, fps: int, width: int, height: int) -> None:
-        global screen
         pygame.init()
         pygame.mixer.init()
         self.clock = pygame.time.Clock()
@@ -156,7 +155,7 @@ class GMD:
         self.back_button.set_callback_func(
             lambda: self.back_button_callback('editor-to-menu'))
         self.back_button.draw(self.screen)
-        editor = Editor(self.width, self.height)
+        editor = Editor(self.width, self.height, self.screen)
 
     def start_level(self, level_nr: int = 1):
         pygame.mixer.music.stop()
