@@ -21,6 +21,7 @@ def load_image(name: str, colorkey=None) -> pygame.image:
 class Button(pygame.sprite.Sprite):
     def __init__(self, image: pygame.image,
                  position: tuple, scale: float) -> None:
+        pygame.sprite.Sprite.__init__(self)
         self.signal_func = None
         width = image.get_width()
         height = image.get_height()
@@ -71,7 +72,7 @@ class Portal(pygame.sprite.Sprite):
         super().__init__(all)
 
         self.image = pygame.transform.scale(load_image("ShipPortal.png", -1),
-                                            (int(width * scale), int(height * scale * 2))) # удалено subsurafce - ошибка ValueError: subsurface rectangle outside surface area
+                                            (int(width * scale), int(height * scale * 2)))  # удалено subsurafce - ошибка ValueError: subsurface rectangle outside surface area
         self.mask = pygame.mask.from_surface(self.image)
         self.rect = self.image.get_rect()
 
@@ -91,9 +92,9 @@ class Player(pygame.sprite.Sprite):
             'icon_4.png'), (int(width * scale), int(height * scale)))
         self.mask = pygame.mask.from_surface(self.image)
         self.rect = self.image.get_rect()
-        
+
         self.all_sprites = all
-        
+
         self.rect.x = pos[0]
         self.rect.y = pos[1]
 

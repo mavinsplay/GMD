@@ -1,6 +1,7 @@
 from editor import Editor, loadLevel, Stone
 from objects import Button, load_image
 import pygame
+import os
 
 
 class GMD:
@@ -22,6 +23,10 @@ class GMD:
         self.background1 = pygame.transform.scale(
             load_image('background.png'), (self.width, self.height))
         pygame.display.set_caption('GMD v 1.0       by o2o and SAVITSKY')
+        self.select_icon = load_image('icon_1.png')
+        self.init_start_buttons()
+        self.init_icons_buttons()
+        self.init_levels_buttons()
 
     def init_music(self, path: str = 'data/menuLoop.mp3', time: int = -1) -> None:
         pygame.mixer.music.stop()
@@ -38,7 +43,7 @@ class GMD:
         self.start_butt_group.append(self.levels_buttons)
 
         self.icons_button = Button(load_image(
-            'icon_set_button.png'), (self.width * 0.2, self.height * 0.2), 0.9)
+            'icons_set_button.png'), (self.width * 0.2, self.height * 0.2), 0.9)
         self.icons_button.set_callback_func(self.set_icon_button)
         self.start_butt_group.append(self.icons_button)
 
@@ -78,6 +83,20 @@ class GMD:
             lambda: self.back_button_callback('icons-to-menu'))
         self.icons_buttons_group.append(self.back_button)
 
+        self.icons = {}
+        x = 0.1
+        y = 0.7
+        # получение списка всех фалйов в каталоге data
+        icons = os.listdir('data')
+        for i, name in enumerate(list(filter(lambda x: 'icon_' in x, icons))):
+            if i == 8:
+                x = 0.1
+                y += 0.1
+            self.icons[name] = Button(load_image(
+                name), (self.width * x, self.height * y), 0.8)
+            self.icons[name].set_callback_func(lambda n=name: self.set_icon(n))
+            x += 0.1
+
     def back_button_callback(self, call: str) -> None:
         if call == 'play-to-menu':
             self.levels_buttons = False
@@ -92,8 +111,12 @@ class GMD:
     def init_background(self) -> None:
         self.screen.blit(self.background, (0, 0))  # доделать до анимации
 
+    def set_icon(self, icon: str) -> None:
+        self.icons_button = False
+        self.select_icon = load_image(icon)
+        self.set_icon_button()
+
     def start_window(self) -> None:
-        self.init_start_buttons()
         self.screen.fill((0, 0, 0))
         self.init_background()
         for i in self.start_butt_group:
@@ -114,7 +137,6 @@ class GMD:
 
         self.screen.fill((0, 0, 0))
         self.screen.blit(self.background1, (0, 0))
-        self.init_levels_buttons()
         for i in self.levels_button_group:
             i.draw(self.screen)
 
@@ -133,10 +155,16 @@ class GMD:
         self.icons_buttons = True
         self.screen.fill((0, 0, 0))
         self.screen.blit(self.background1, (0, 0))
-        self.screen.blit(pygame.transform.scale(load_image('editor_surface.png'), (self.width, self.height * 0.4)), (0, self.height * 0.6))
-        self.init_icons_buttons()
+        self.screen.blit(pygame.transform.scale(load_image(
+            'editor_surface.png'), (self.width, self.height * 0.4)), (0, self.height * 0.6))
+        self.screen.blit(pygame.transform.scale(self.select_icon, (self.width *
+                         0.2, self.height * 0.35)), (self.width * 0.4, self.height * 0.1))
         for i in self.icons_buttons_group:
             i.draw(self.screen)
+
+        for i, j in self.icons.items():
+            j.draw(self.screen)
+
         while self.running and self.icons_buttons:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -144,6 +172,8 @@ class GMD:
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     for i in self.icons_buttons_group:
                         i.click(event.pos)
+                    for i, j in self.icons.items():
+                        j.click(event.pos)
             pygame.display.flip()
             self.clock.tick(self.FPS)
 
