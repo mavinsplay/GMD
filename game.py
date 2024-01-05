@@ -85,13 +85,13 @@ class GMD:
 
         self.icons = {}
         x = 0.1
-        y = 0.7
+        y = 0.65
         # получение списка всех фалйов в каталоге data
         icons = os.listdir('data')
         for i, name in enumerate(list(filter(lambda x: 'icon_' in x, icons))):
             if i == 8:
                 x = 0.1
-                y += 0.1
+                y += 0.18
             self.icons[name] = Button(load_image(
                 name), (self.width * x, self.height * y), 0.8)
             self.icons[name].set_callback_func(lambda n=name: self.set_icon(n))
@@ -158,7 +158,7 @@ class GMD:
         self.screen.blit(pygame.transform.scale(load_image(
             'editor_surface.png'), (self.width, self.height * 0.4)), (0, self.height * 0.6))
         self.screen.blit(pygame.transform.scale(self.select_icon, (self.width *
-                         0.2, self.height * 0.35)), (self.width * 0.4, self.height * 0.1))
+                         0.2, self.height * 0.36)), (self.width * 0.4, self.height * 0.1))
         for i in self.icons_buttons_group:
             i.draw(self.screen)
 
@@ -185,7 +185,9 @@ class GMD:
         self.back_button.set_callback_func(
             lambda: self.back_button_callback('editor-to-menu'))
         self.back_button.draw(self.screen)
-        editor = Editor(self.width, self.height, self.screen)
+        self.edit = Editor(self.width, self.height, self.screen)
+        self.init_music()
+        self.start_window()
 
     def start_level(self, level_nr: int = 1):
         pygame.mixer.music.stop()
@@ -193,7 +195,7 @@ class GMD:
         scale = 0.04
         v = 10000
         person = loadLevel(self.width, self.height,
-                           scale, all_sprites, level_nr)
+                           scale, all_sprites, level_nr, f'{str(level_nr).rjust(3, "0")}.mp3')
         while self.running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:

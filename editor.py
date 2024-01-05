@@ -3,7 +3,8 @@ import os
 from objects import Player, Stone, Portal, Button, load_image
 
 
-def loadLevel(width: int, height: int, scale: float, all_sprites: pygame.sprite.Group, level_nr=1):
+def loadLevel(width: int, height: int, scale: float,
+              all_sprites: pygame.sprite.Group, level_nr: int = 1, music: str = '001.mp3') -> Player:
     filename = "geometry_levels/" + str(level_nr)
     if not os.path.isfile(filename):
         return False
@@ -23,11 +24,13 @@ def loadLevel(width: int, height: int, scale: float, all_sprites: pygame.sprite.
             x += width * scale
         x = 0
         y += height * scale
+    pygame.mixer.music.load(f'data/{music}')
+    pygame.mixer.music.play()
     return person
 
 
 class Editor:
-    def __init__(self, width: int, height: int, screen):
+    def __init__(self, width: int, height: int, screen: pygame.display) -> None:
         super().__init__()
 
         pygame.init()
@@ -49,8 +52,10 @@ class Editor:
         self.screen.rect = self.screen.image.get_rect()
         self.screen.rect.y = height * (1 - scale_screen)
 
-        btn_save = Button(load_image('save_level_buton_state2.png'), (width * 0.7, height * (1 - scale_screen)), 0.3)
-        btn_close = Button(load_image('back_button.png'), (width * 0.7, height * (1 - scale_screen + btn_save.image.get_height() / width)), 0.6)
+        btn_save = Button(load_image('save_level_buton_state2.png'),
+                          (width * 0.7, height * (1 - scale_screen)), 0.3)
+        btn_close = Button(load_image('back_button.png'), (width * 0.7, height *
+                           (1 - scale_screen + btn_save.image.get_height() / width)), 0.6)
 
         image = pygame.Surface((width * scale, height * scale_screen))
         image.fill((0, 120, 120))
@@ -60,20 +65,26 @@ class Editor:
         self.screen1.rect.x = width * 0.1
         self.screen1.rect.y = height * (1 - scale_screen)
 
-        self.stone = Stone((width * 0.1, height * (1 - scale_screen / 1.7)), width, height, scale, all_sprites)
+        self.stone = Stone(
+            (width * 0.1, height * (1 - scale_screen / 1.7)), width, height, scale, all_sprites)
 
-        self.trap = Stone((width * 0.2, height * (1 - scale_screen / 1.7)), width, height, scale, all_sprites, True)
-        self.player = Player((width * 0.3, height * (1 - scale_screen / 1.7)), width, height, scale, all_sprites)
+        self.trap = Stone((width * 0.2, height * (1 - scale_screen / 1.7)),
+                          width, height, scale, all_sprites, True)
+        self.player = Player(
+            (width * 0.3, height * (1 - scale_screen / 1.7)), width, height, scale, all_sprites)
 
-        self.portal = Portal((width * 0.4, height * (1 - scale_screen / 1.4)), width, height, scale, all_sprites)
+        self.portal = Portal(
+            (width * 0.4, height * (1 - scale_screen / 1.4)), width, height, scale, all_sprites)
 
         all_sprites2 = pygame.sprite.Group()
 
         fon = pygame.sprite.Sprite(all_sprites2)
-        fon.image = pygame.transform.scale(load_image('editor_background.png'), (width, height))
+        fon.image = pygame.transform.scale(load_image(
+            'editor_background.png'), (width, height))
         fon.rect = fon.image.get_rect()
 
-        self.player1 = Player((width * scale * 7, height * scale * 9), width, height, scale, all_sprites2)
+        self.player1 = Player(
+            (width * scale * 7, height * scale * 9), width, height, scale, all_sprites2)
 
         self.posit = 0
 
@@ -102,8 +113,10 @@ class Editor:
                                        event.pos[1] - event.pos[1] % int(height * scale)), width, height, scale,
                                       all_sprites2, True)
                             elif self.posit == 2:
-                                self.player1.rect.x = event.pos[0] - event.pos[0] % int(width * scale)
-                                self.player1.rect.y = event.pos[1] - event.pos[1] % int(height * scale)
+                                self.player1.rect.x = event.pos[0] - \
+                                    event.pos[0] % int(width * scale)
+                                self.player1.rect.y = event.pos[1] - \
+                                    event.pos[1] % int(height * scale)
                             elif self.posit == 3:
                                 Portal((event.pos[0] - event.pos[0] % int(width * scale),
                                         event.pos[1] - event.pos[1] % int(height * scale)), width, height, scale,
@@ -185,11 +198,11 @@ class Editor:
             for y in range(int(height * (1 - scale_screen) / (height * scale))):
                 for x in range(int(width / (width * scale))):
                     pygame.draw.rect(screen, (255, 255, 255), (
-                    int(x * width * scale), int(y * height * scale), int(width * scale), int(height * scale)), 1)
+                        int(x * width * scale), int(y * height * scale), int(width * scale), int(height * scale)), 1)
             clock.tick(50)
             pygame.display.flip()
 
-    def save(self, all_sprites, width, height, scale, level_nr=1):
+    def save(self, all_sprites, width, height, scale, level_nr=1) -> None:
         filename = "geometry_levels/" + str(level_nr + 1)
 
         f = open(filename, "w")
@@ -234,7 +247,8 @@ if __name__ == '__main__':
 
     screen = pygame.display.set_mode(size)
     fon = pygame.sprite.Sprite(all_sprites)
-    fon.image = pygame.transform.scale(load_image('editor_background.png'), size)
+    fon.image = pygame.transform.scale(
+        load_image('editor_background.png'), size)
     fon.rect = fon.image.get_rect()
 
     clock = pygame.time.Clock()
