@@ -185,7 +185,7 @@ class GMD:
         self.back_button.set_callback_func(
             lambda: self.back_button_callback('editor-to-menu'))
         self.back_button.draw(self.screen)
-        self.edit = Editor(self.width, self.height, self.screen)
+        self.edit = Editor(self.width, self.height, self.screen, self.select_icon)
         self.init_music()
         self.start_window()
 
@@ -195,7 +195,8 @@ class GMD:
         scale = 0.04
         v = 10000
         person = loadLevel(self.width, self.height,
-                           scale, all_sprites, level_nr, f'{str(level_nr).rjust(3, "0")}.mp3')
+                           scale, all_sprites, level_nr, f'{str(level_nr).rjust(3, "0")}.mp3',
+                           self.select_icon)
         while self.running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:

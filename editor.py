@@ -4,7 +4,8 @@ from objects import Player, Stone, Portal, Button, load_image
 
 
 def loadLevel(width: int, height: int, scale: float,
-              all_sprites: pygame.sprite.Group, level_nr: int = 1, music: str = '001.mp3') -> Player:
+              all_sprites: pygame.sprite.Group, level_nr: int = 1, 
+              music: str = '001.mp3', icon: str = 'icon_1.png') -> Player:
     filename = "geometry_levels/" + str(level_nr)
     if not os.path.isfile(filename):
         return False
@@ -18,7 +19,7 @@ def loadLevel(width: int, height: int, scale: float,
             elif ch == "S":
                 Stone((x, y), width, height, scale, all_sprites, True)
             elif ch == "~":
-                person = Player((x, y), width, height, scale, all_sprites)
+                person = Player((x, y), width, height, scale, all_sprites, icon)
             elif ch == "A":
                 Portal((x, y), width, height, scale, all_sprites)
             x += width * scale
@@ -30,7 +31,7 @@ def loadLevel(width: int, height: int, scale: float,
 
 
 class Editor:
-    def __init__(self, width: int, height: int, screen: pygame.display) -> None:
+    def __init__(self, width: int, height: int, screen: pygame.display, icon: pygame.image) -> None:
         super().__init__()
 
         pygame.init()
@@ -52,7 +53,7 @@ class Editor:
         self.screen.rect = self.screen.image.get_rect()
         self.screen.rect.y = height * (1 - scale_screen)
 
-        btn_save = Button(load_image('save_level_buton_state2.png'),
+        btn_save = Button(load_image('save_level_buton_state1.png'),
                           (width * 0.7, height * (1 - scale_screen)), 0.3)
         btn_close = Button(load_image('back_button.png'), (width * 0.7, height *
                            (1 - scale_screen + btn_save.image.get_height() / width)), 0.6)
@@ -71,7 +72,7 @@ class Editor:
         self.trap = Stone((width * 0.2, height * (1 - scale_screen / 1.7)),
                           width, height, scale, all_sprites, True)
         self.player = Player(
-            (width * 0.3, height * (1 - scale_screen / 1.7)), width, height, scale, all_sprites)
+            (width * 0.3, height * (1 - scale_screen / 1.7)), width, height, scale, all_sprites, icon)
 
         self.portal = Portal(
             (width * 0.4, height * (1 - scale_screen / 1.4)), width, height, scale, all_sprites)
@@ -84,7 +85,7 @@ class Editor:
         fon.rect = fon.image.get_rect()
 
         self.player1 = Player(
-            (width * scale * 7, height * scale * 9), width, height, scale, all_sprites2)
+            (width * scale * 7, height * scale * 9), width, height, scale, all_sprites2, icon)
 
         self.posit = 0
 
@@ -123,8 +124,9 @@ class Editor:
                                        all_sprites2)
                     else:
                         if btn_save.rect.collidepoint(event.pos):
-                            self.save(all_sprites2, width, height, scale)
-                            btn_save.update('save_level_buton_state1.png')
+                            self.save(all_sprites2, width,
+                                      height, scale, level_nr=4)
+                            btn_save.update('save_level_buton_state2.png')
                         elif btn_close.rect.collidepoint(event.pos):
                             btn_close.update('back_button.png')
                         if self.stone.rect.collidepoint(event.pos):
@@ -203,7 +205,7 @@ class Editor:
             pygame.display.flip()
 
     def save(self, all_sprites, width, height, scale, level_nr=1) -> None:
-        filename = "geometry_levels/" + str(level_nr + 1)
+        filename = "geometry_levels/" + str(level_nr)
 
         f = open(filename, "w")
 

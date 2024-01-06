@@ -86,10 +86,10 @@ class Portal(pygame.sprite.Sprite):
 
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, pos, width, height, scale, all):
+    def __init__(self, pos: tuple, width: int, height: int, scale: float,
+                 all: pygame.sprite.Sprite, icon: pygame.image):
         super().__init__(all)
-        self.image = pygame.transform.scale(load_image(
-            'icon_4.png'), (int(width * scale), int(height * scale)))
+        self.image = pygame.transform.scale(icon, (int(width * scale), int(height * scale)))
         self.mask = pygame.mask.from_surface(self.image)
         self.rect = self.image.get_rect()
 
