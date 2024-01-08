@@ -117,6 +117,7 @@ class GMD:
         self.set_icon_button()
 
     def start_window(self) -> None:
+        pygame.display.set_caption('Инициализация игры')
         self.screen.fill((0, 0, 0))
         self.init_background()
         for i in self.start_butt_group:
