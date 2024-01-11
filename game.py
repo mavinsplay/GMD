@@ -117,7 +117,7 @@ class GMD:
         self.set_icon_button()
 
     def start_window(self) -> None:
-        pygame.display.set_caption('Инициализация игры')
+        pygame.display.set_caption('GMD v 1.0       by o2o and SAVITSKY')
         self.screen.fill((0, 0, 0))
         self.init_background()
         for i in self.start_butt_group:
@@ -139,7 +139,7 @@ class GMD:
         self.screen.fill((0, 0, 0))
         self.screen.blit(self.background1, (0, 0))
         for i in self.levels_button_group:
-            i.draw(self.screen)
+            i.draw(self.screen) 
 
         while self.running and self.levels_buttons:
             for event in pygame.event.get():
@@ -193,25 +193,24 @@ class GMD:
     def start_level(self, level_nr: int = 1):
         pygame.mixer.music.stop()
         all_sprites = pygame.sprite.Group()
-        scale = 0.04
+        scale = 0.5
         v = 10000
-        person = loadLevel(self.width, self.height,
-                           scale, all_sprites, level_nr, f'{str(level_nr).rjust(3, "0")}.mp3',
+        person = loadLevel(scale, all_sprites, level_nr, f'{str(level_nr).rjust(3, "0")}.mp3',
                            self.select_icon)
         while self.running:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
+            for event in pygame.event.get(): 
+                if event.type == pygame.QUIT: 
                     self.running = False
-                if event.type == pygame.KEYDOWN:
+                if event.type == pygame.KEYDOWN: 
                     if event.key == pygame.K_SPACE and not person.collide:
                         person.jump_bul = True
                     if event.key == pygame.K_ESCAPE:
-                        return (self.init_music(), self.levels_window())
+                        return self.init_music(), self.levels_window()
                 elif event.type == pygame.KEYUP:
                     if event.key == pygame.K_SPACE:
                         person.jump_bul = False
-            if person.jump_bul and person.g <= -person.height * 0.13:
-                person.g = person.height * 0.13
+            if person.jump_bul and person.g <= -person.height * 0.05 and not person.collide:
+                person.g = person.height * 0.07
 
             all_sprites.update()
             self.screen.fill((255, 255, 255))
@@ -221,6 +220,6 @@ class GMD:
 
 
 if __name__ == "__main__":
-    gmd = GMD(240, 1500, 800)
+    gmd = GMD(90, 1500, 800)
     gmd.start_window()
     pygame.quit()
