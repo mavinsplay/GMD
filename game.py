@@ -1,5 +1,5 @@
 from editor import Editor, loadLevel, Stone
-from objects import Button, load_image
+from objects import Button, load_image, Player
 import pygame
 import os
 
@@ -12,9 +12,7 @@ class GMD:
         self.width = width
         self.height = height
         self.running = True
-        self.levels_buttons = True
-        self.editor_screen = True
-        self.icons_buttons = True
+        self.font = pygame.font.Font(None, 40)
         self.FPS = fps
         self.init_music()
         self.screen = pygame.display.set_mode((self.width, self.height))
@@ -32,7 +30,7 @@ class GMD:
         pygame.mixer.music.stop()
         pygame.mixer.music.unload()
         pygame.mixer.music.load(path)
-        pygame.mixer.music.play(-1)
+        pygame.mixer.music.play(time)
 
     def init_start_buttons(self) -> None:
         self.start_butt_group = []
@@ -112,7 +110,6 @@ class GMD:
         self.screen.blit(self.background, (0, 0))  # доделать до анимации
 
     def set_icon(self, icon: str) -> None:
-        self.icons_button = False
         self.select_icon = load_image(icon)
         self.set_icon_button()
 
@@ -129,31 +126,30 @@ class GMD:
                     self.running = False
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     for i in self.start_butt_group:
-                        i.click(event.pos)
+                        if i.click(event.pos):
+                            return
             pygame.display.flip()
             self.clock.tick(self.FPS)
 
     def levels_window(self) -> None:
-        self.levels_buttons = True
-
         self.screen.fill((0, 0, 0))
         self.screen.blit(self.background1, (0, 0))
         for i in self.levels_button_group:
-            i.draw(self.screen) 
+            i.draw(self.screen)
 
-        while self.running and self.levels_buttons:
+        while self.running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.running = False
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     for i in self.levels_button_group:
-                        i.click(event.pos)
+                        if i.click(event.pos):
+                            return
 
             pygame.display.flip()
             self.clock.tick(self.FPS)
 
     def set_icon_button(self) -> None:
-        self.icons_buttons = True
         self.screen.fill((0, 0, 0))
         self.screen.blit(self.background1, (0, 0))
         self.screen.blit(pygame.transform.scale(load_image(
@@ -166,15 +162,17 @@ class GMD:
         for i, j in self.icons.items():
             j.draw(self.screen)
 
-        while self.running and self.icons_buttons:
+        while self.running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.running = False
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     for i in self.icons_buttons_group:
-                        i.click(event.pos)
+                        if i.click(event.pos):
+                            return
                     for i, j in self.icons.items():
-                        j.click(event.pos)
+                        if j.click(event.pos):
+                            return
             pygame.display.flip()
             self.clock.tick(self.FPS)
 
@@ -186,22 +184,30 @@ class GMD:
         self.back_button.set_callback_func(
             lambda: self.back_button_callback('editor-to-menu'))
         self.back_button.draw(self.screen)
-        self.edit = Editor(self.width, self.height, self.screen, self.select_icon)
+        self.edit = Editor(self.width, self.height,
+                           self.screen, self.select_icon)
         self.init_music()
         self.start_window()
 
     def start_level(self, level_nr: int = 1):
         pygame.mixer.music.stop()
         all_sprites = pygame.sprite.Group()
+        player = None
         scale = 0.5
         v = 10000
         person = loadLevel(scale, all_sprites, level_nr, f'{str(level_nr).rjust(3, "0")}.mp3',
                            self.select_icon)
+        for sprite in all_sprites:
+            if isinstance(sprite, Player):
+                player = sprite
+        rightmost_sprite = max(
+            all_sprites, key=lambda sprite: sprite.rect.right).rect.right
+        progress = 0
         while self.running:
-            for event in pygame.event.get(): 
-                if event.type == pygame.QUIT: 
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
                     self.running = False
-                if event.type == pygame.KEYDOWN: 
+                if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_SPACE and not person.collide:
                         person.jump_bul = True
                     if event.key == pygame.K_ESCAPE:
@@ -211,11 +217,21 @@ class GMD:
                         person.jump_bul = False
             if person.jump_bul and person.g <= -person.height * 0.05 and not person.collide:
                 person.g = person.height * 0.07
-
             all_sprites.update()
             self.screen.fill((255, 255, 255))
             all_sprites.draw(self.screen)
             self.clock.tick(v / self.FPS)
+
+            progress = 100 - \
+                (max(all_sprites, key=lambda sprite: sprite.rect.right).rect.right *
+                 100) / rightmost_sprite
+            text = self.font.render(f'{progress:.2f}%', True, 'black')
+            self.screen.blit(text, (self.width * 0.45, 0))
+            if not player.islive:
+                if player.isfinal:
+                    print('final')       
+                else:
+                    return self.levels_window()
             pygame.display.flip()
 
 

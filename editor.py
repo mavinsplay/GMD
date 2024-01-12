@@ -1,6 +1,6 @@
 import pygame
 import os
-from objects import Player, Stone, Button, load_image, Spike
+from objects import Player, Stone, Button, load_image, Spike, Final_line
 
 
 def loadLevel(scale: float,
@@ -20,6 +20,8 @@ def loadLevel(scale: float,
                 Spike((x, y), scale, all_sprites)
             elif ch == "~":
                 person = Player((x, y), scale, all_sprites, icon)
+            elif ch == "F":
+                Final_line((x, y), scale, all_sprites)
             x += 128 * scale
         x = 0
         y += 128 * scale
@@ -217,51 +219,3 @@ class Editor:
                     f.write('.')
             f.write('\n')
         f.close()
-
-
-if __name__ == '__main__':
-    pygame.init()
-    pygame.display.set_caption('Инициализация игры')
-    size = width, height = 1000, 1000
-
-    all_sprites = pygame.sprite.Group()
-    level_nr = 1
-    scale = 0.5
-
-    screen = pygame.display.set_mode(size)
-    fon = pygame.sprite.Sprite(all_sprites)
-    fon.image = pygame.transform.scale(
-        load_image('editor_background.png'), size)
-    fon.rect = fon.image.get_rect()
-
-    clock = pygame.time.Clock()
-    running = True
-
-    person = loadLevel(scale, all_sprites, level_nr)
-
-    while running:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 3:
-                person.rect.x = event.pos[0]
-                person.rect.y = event.pos[1]
-            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                Stone(event.pos, scale, all_sprites)
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE and not person.collide:
-                    person.jump_bul = True
-            elif event.type == pygame.KEYUP:
-                if event.key == pygame.K_SPACE:
-                    person.jump_bul = False
-
-        if person.jump_bul and person.g <= -person.height * 0.13:
-            person.g = person.height * 0.13 * person.g // abs(person.g) * -1
-
-        for i in all_sprites:
-            if i != fon:
-                i.update()
-        all_sprites.draw(screen)
-        clock.tick(50)
-        pygame.display.flip()
-    pygame.quit()
