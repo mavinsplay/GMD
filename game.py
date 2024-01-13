@@ -9,10 +9,11 @@ class GMD:
         pygame.init()
         pygame.mixer.init()
         self.clock = pygame.time.Clock()
+        self.font_procentage = pygame.font.Font(None, 40)
+        self.font_restart = pygame.font.Font(None, 100)
         self.width = width
         self.height = height
         self.running = True
-        self.font = pygame.font.Font(None, 40)
         self.FPS = fps
         self.init_music()
         self.screen = pygame.display.set_mode((self.width, self.height))
@@ -32,7 +33,7 @@ class GMD:
         pygame.mixer.music.load(path)
         pygame.mixer.music.play(time)
 
-    def init_start_buttons(self) -> None:
+    def init_start_buttons(self) -> None: 
         self.start_butt_group = []
 
         self.levels_buttons = Button(load_image(
@@ -97,17 +98,16 @@ class GMD:
 
     def back_button_callback(self, call: str) -> None:
         if call == 'play-to-menu':
-            self.levels_buttons = False
             self.start_window()
         elif call == 'editor-to-menu':
-            self.editor_screen = False
             self.start_window()
         elif call == 'icons-to-menu':
-            self.icons_buttons = False
             self.start_window()
+        elif call == 'restart-to-levels':
+            self.levels_window()
 
     def init_background(self) -> None:
-        self.screen.blit(self.background, (0, 0))  # доделать до анимации
+        self.screen.blit(self.background, (0, 0))
 
     def set_icon(self, icon: str) -> None:
         self.select_icon = load_image(icon)
@@ -143,6 +143,43 @@ class GMD:
                     self.running = False
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     for i in self.levels_button_group:
+                        if i.click(event.pos):
+                            return
+
+            pygame.display.flip()
+            self.clock.tick(self.FPS)
+    
+    def restart_window(self, level: int = 1, progress: int = 100):
+        self.restart_buttons_group = []
+        
+        self.restart_button = Button(load_image('restart_button.png'), (self.width * 0.3, self.height * 0.7), 1.0)
+        self.restart_button.set_callback_func(lambda: self.start_level(level))
+        self.restart_buttons_group.append(self.restart_button)
+        
+        self.back_button = Button(load_image('back_button.png'), (self.width * 0.6, self.height * 0.7), 1.0)
+        self.back_button.set_callback_func(
+            lambda: self.back_button_callback('restart-to-levels'))
+        self.restart_buttons_group.append(self.back_button)
+
+        self.screen.blit(load_image('restart_surface.png'), (self.width * 0.2, self.height * 0.2, self.width * 0.8, self.height * 0.8))
+        
+        for i in self.restart_buttons_group:
+            i.draw(self.screen)
+        
+        text = self.font_restart.render(f'{progress:.2f}%', True, 'white')
+        if progress == 100:
+            text2 = self.font_restart.render(f'YOU WIN', True, 'white')
+        else:
+            text2 = self.font_restart.render(f'GAME OVER', True, 'white')
+        self.screen.blit(text, (self.width * 0.45, self.height * 0.3))
+        self.screen.blit(text2, (self.width * 0.38, self.height * 0.5))
+        
+        while self.running:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.running = False
+                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    for i in self.restart_buttons_group:
                         if i.click(event.pos):
                             return
 
@@ -195,6 +232,7 @@ class GMD:
         player = None
         scale = 0.5
         v = 10000
+        background = load_image('editor_background.png')
         person = loadLevel(scale, all_sprites, level_nr, f'{str(level_nr).rjust(3, "0")}.mp3',
                            self.select_icon)
         for sprite in all_sprites:
@@ -218,20 +256,24 @@ class GMD:
             if person.jump_bul and person.g <= -person.height * 0.05 and not person.collide:
                 person.g = person.height * 0.07
             all_sprites.update()
-            self.screen.fill((255, 255, 255))
+            self.screen.blit(background, (0, 0))
             all_sprites.draw(self.screen)
             self.clock.tick(v / self.FPS)
-
             progress = 100 - \
                 (max(all_sprites, key=lambda sprite: sprite.rect.right).rect.right *
                  100) / rightmost_sprite
-            text = self.font.render(f'{progress:.2f}%', True, 'black')
-            self.screen.blit(text, (self.width * 0.45, 0))
+
             if not player.islive:
                 if player.isfinal:
-                    print('final')       
+                    print('final')
+                    progress = 100
+                    self.restart_window(level_nr)
+                           
                 else:
-                    return self.levels_window()
+                    self.restart_window(level_nr, progress)
+                
+            text = self.font_procentage.render(f'{progress:.2f}%', True, 'white')
+            self.screen.blit(text, (self.width * 0.45, 0))
             pygame.display.flip()
 
 

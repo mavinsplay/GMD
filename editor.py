@@ -4,7 +4,7 @@ from objects import Player, Stone, Button, load_image, Spike, Final_line
 
 
 def loadLevel(scale: float,
-              all_sprites: pygame.sprite.Group, level_nr: int = 1, 
+              all_sprites: pygame.sprite.Group, level_nr: int = 1,
               music: str = '001.mp3', icon: str = 'icon_1.png') -> Player:
     filename = "geometry_levels/" + str(level_nr)
     if not os.path.isfile(filename):
@@ -55,7 +55,8 @@ class Editor:
 
         btn_save = Button(load_image('save_level_buton_state1.png'),
                           (width * 0.7, height * (1 - scale_screen)), 0.6)
-        btn_close = Button(load_image('back_button.png'), (width * (1 - scale_screen + btn_save.image.get_width() * 0.6 / width), height * (1 - scale_screen)), 0.6)
+        btn_close = Button(load_image('back_button.png'), (width * (1 - scale_screen +
+                           btn_save.image.get_width() * 0.6 / width), height * (1 - scale_screen)), 0.6)
 
         image = pygame.Surface((64, height * scale_screen))
         image.fill((0, 120, 120))
@@ -68,7 +69,8 @@ class Editor:
         self.stone = Stone(
             (width * 0.1, height * (1 - scale_screen / 1.5)), scale, all_sprites)
 
-        self.trap = Spike((width * 0.2, height * (1 - scale_screen / 1.5)), scale, all_sprites)
+        self.trap = Spike(
+            (width * 0.2, height * (1 - scale_screen / 1.5)), scale, all_sprites)
         self.player = Player(
             (width * 0.3, height * (1 - scale_screen / 1.5)), scale, all_sprites, icon)
 
@@ -109,8 +111,10 @@ class Editor:
                                        event.pos[1] - event.pos[1] % int(self.player.height * scale)), scale,
                                       all_sprites2)
                             elif self.posit == 2:
-                                self.player1.rect.x = event.pos[0] - event.pos[0] % int(self.player.width * scale)
-                                self.player1.rect.y = event.pos[1] - event.pos[1] % int(self.player.height * scale)
+                                self.player1.rect.x = event.pos[0] - event.pos[0] % int(
+                                    self.player.width * scale)
+                                self.player1.rect.y = event.pos[1] - event.pos[1] % int(
+                                    self.player.height * scale)
                     else:
                         if btn_save.rect.collidepoint(event.pos):
                             self.save(all_sprites2, scale, level_nr=4)
