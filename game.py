@@ -1,6 +1,7 @@
-from editor import Editor, loadLevel, Stone
-from objects import Button, load_image, Player
+from editor import Editor, loadLevel, Redactor
+from objects import Button, load_image
 import pygame
+import sqlite3
 import os
 
 
@@ -9,6 +10,13 @@ class GMD:
         pygame.init()
         pygame.mixer.init()
         self.clock = pygame.time.Clock()
+        with open('player.txt', 'r+') as file:
+            data = file.readline()
+            if not data:
+                file.write('player')
+                self.player_name = 'player'
+            else:
+                self.player_name = data
         self.font_procentage = pygame.font.Font(None, 40)
         self.font_restart = pygame.font.Font(None, 100)
         self.width = width
@@ -33,7 +41,7 @@ class GMD:
         pygame.mixer.music.load(path)
         pygame.mixer.music.play(time)
 
-    def init_start_buttons(self) -> None: 
+    def init_start_buttons(self) -> None:
         self.start_butt_group = []
 
         self.levels_buttons = Button(load_image(
@@ -104,10 +112,23 @@ class GMD:
         elif call == 'icons-to-menu':
             self.start_window()
         elif call == 'restart-to-levels':
+            self.init_music()
             self.levels_window()
 
     def init_background(self) -> None:
         self.screen.blit(self.background, (0, 0))
+
+    def sql_write(self, score, level):
+        try:
+            con = sqlite3.connect('leader_board.db')
+            cur = con.cursor()
+            cur.execute(f'''INSERT INTO scores(player, score, level) VALUES (?, ?, ?)''',
+                        (self.player_name, int(score), level))
+            con.commit()
+            con.close()
+        except sqlite3.OperationalError:
+            print(
+                f'ошибка в БД, данные ({self.player_name}, {score}, {level}) не были записаны.')
 
     def set_icon(self, icon: str) -> None:
         self.select_icon = load_image(icon)
@@ -148,24 +169,27 @@ class GMD:
 
             pygame.display.flip()
             self.clock.tick(self.FPS)
-    
-    def restart_window(self, level: int = 1, progress: int = 100):
+
+    def restart_window(self, level: int = 1, progress: int = 100, func=None):
         self.restart_buttons_group = []
-        
-        self.restart_button = Button(load_image('restart_button.png'), (self.width * 0.3, self.height * 0.7), 1.0)
-        self.restart_button.set_callback_func(lambda: self.start_level(level))
+
+        self.restart_button = Button(load_image(
+            'restart_button.png'), (self.width * 0.3, self.height * 0.7), 1.0)
+        self.restart_button.set_callback_func(
+            lambda: self.start_level(level, func=func))
         self.restart_buttons_group.append(self.restart_button)
-        
-        self.back_button = Button(load_image('back_button.png'), (self.width * 0.6, self.height * 0.7), 1.0)
-        self.back_button.set_callback_func(
-            lambda: self.back_button_callback('restart-to-levels'))
+
+        self.back_button = Button(load_image(
+            'back_button.png'), (self.width * 0.6, self.height * 0.7), 1.0)
+        self.back_button.set_callback_func(func)
         self.restart_buttons_group.append(self.back_button)
 
-        self.screen.blit(load_image('restart_surface.png'), (self.width * 0.2, self.height * 0.2, self.width * 0.8, self.height * 0.8))
-        
+        self.screen.blit(load_image('restart_surface.png'), (self.width *
+                         0.2, self.height * 0.2, self.width * 0.8, self.height * 0.8))
+
         for i in self.restart_buttons_group:
             i.draw(self.screen)
-        
+
         text = self.font_restart.render(f'{progress:.2f}%', True, 'white')
         if progress == 100:
             text2 = self.font_restart.render(f'YOU WIN', True, 'white')
@@ -173,7 +197,7 @@ class GMD:
             text2 = self.font_restart.render(f'GAME OVER', True, 'white')
         self.screen.blit(text, (self.width * 0.45, self.height * 0.3))
         self.screen.blit(text2, (self.width * 0.38, self.height * 0.5))
-        
+
         while self.running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -213,31 +237,39 @@ class GMD:
             pygame.display.flip()
             self.clock.tick(self.FPS)
 
-    def editor(self) -> None:
+    def editor(self, is_level=None) -> None:
         pygame.mixer.music.stop()
         self.screen.fill((0, 0, 0))
         self.editor_screen = True
         self.back_button = Button(load_image('back_button.png'), (0, 0), 0.3)
         self.back_button.set_callback_func(
-            lambda: self.back_button_callback('editor-to-menu'))
+            lambda: self.editor())
         self.back_button.draw(self.screen)
-        self.edit = Editor(self.width, self.height,
-                           self.screen, self.select_icon)
-        self.init_music()
-        self.start_window()
+        self.edit = Editor()
+        if is_level is None:
+            is_level = self.edit.init_radector(self.width, self.height, self.screen,
+                                               self.select_icon, self.FPS, Redactor(
+            ).init_radector(self.width, self.height, self.screen, self.FPS))
+        else:
+            is_level = self.edit.init_radector(
+                self.width, self.height, self.screen, self.select_icon, self.FPS, is_level)
+        if is_level:
+            self.start_level(is_level, func=lambda: self.editor(is_level))
+        else:
+            self.init_music()
+            self.start_window()
 
-    def start_level(self, level_nr: int = 1):
+    def start_level(self, level_nr: int = 1, func=None):
+        if func is None:
+            def func(): return self.back_button_callback('restart-to-levels')
         pygame.mixer.music.stop()
         all_sprites = pygame.sprite.Group()
-        player = None
         scale = 0.5
         v = 10000
         background = load_image('editor_background.png')
-        person = loadLevel(scale, all_sprites, level_nr, f'{str(level_nr).rjust(3, "0")}.mp3',
+        person = loadLevel(scale, all_sprites, level_nr,
+                           f'{str(level_nr if int(level_nr) < 4 else 1).rjust(3, "0")}.mp3', 
                            self.select_icon)
-        for sprite in all_sprites:
-            if isinstance(sprite, Player):
-                player = sprite
         rightmost_sprite = max(
             all_sprites, key=lambda sprite: sprite.rect.right).rect.right
         progress = 0
@@ -255,6 +287,8 @@ class GMD:
                         person.jump_bul = False
             if person.jump_bul and person.g <= -person.height * 0.05 and not person.collide:
                 person.g = person.height * 0.07
+            if person.rect.y > self.height:
+                person.islive = False
             all_sprites.update()
             self.screen.blit(background, (0, 0))
             all_sprites.draw(self.screen)
@@ -263,16 +297,20 @@ class GMD:
                 (max(all_sprites, key=lambda sprite: sprite.rect.right).rect.right *
                  100) / rightmost_sprite
 
-            if not player.islive:
-                if player.isfinal:
-                    print('final')
+            if not person.islive:
+                if person.isfinal:
                     progress = 100
-                    self.restart_window(level_nr)
-                           
+                    self.sql_write(progress, level_nr)
+                    self.init_music('data/level_complete.mp3', 0)
+                    return self.restart_window(level_nr, func=func)
+
                 else:
-                    self.restart_window(level_nr, progress)
-                
-            text = self.font_procentage.render(f'{progress:.2f}%', True, 'white')
+                    self.sql_write(progress, level_nr)
+                    self.init_music('data/game_over.mp3', 0)
+                    return self.restart_window(level_nr, progress, func=func)
+
+            text = self.font_procentage.render(
+                f'{progress:.2f}%', True, 'white')
             self.screen.blit(text, (self.width * 0.45, 0))
             pygame.display.flip()
 

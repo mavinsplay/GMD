@@ -71,7 +71,7 @@ class Spike(pygame.sprite.Sprite):
         self.width = self.original_image.get_width()
         self.height = self.original_image.get_height()
         self.image = pygame.transform.scale(self.original_image, (int(self.width * scale), int(self.height * scale)))
-        self.mask = pygame.mask.from_surface(self.image)
+        self.mask = pygame.mask.from_surface(pygame.transform.scale(load_image('spike_rect.png', -1), (int(self.width * scale), int(self.height * scale))))
         self.rect = self.image.get_rect()
 
         self.rect.x = pos[0]
@@ -79,6 +79,7 @@ class Spike(pygame.sprite.Sprite):
 
     def update(self):
         self.rect.x -= self.width // 15
+
 
 class Final_line(pygame.sprite.Sprite):
     def __init__(self, pos, scale, all):
@@ -93,6 +94,36 @@ class Final_line(pygame.sprite.Sprite):
         self.rect.x = pos[0]
         self.rect.y = pos[1]
         
+    def update(self):
+        self.rect.x -= self.width // 15
+
+
+class Flag(pygame.sprite.Sprite):
+    def __init__(self, pos, scale, all, nom: str):
+        super().__init__(all)
+
+        screen1 = pygame.Surface((256, 256))
+        font = pygame.font.Font(None, 300)
+        text = font.render(nom, True, (100, 255, 100))
+        text_x = 128 - text.get_width() // 2
+        text_y = 128 - text.get_height() // 2
+
+        screen1.blit(text, (text_x, text_y))
+        screen1 = screen1.convert()
+        colorkey = screen1.get_at((0, 0))
+        screen1.set_colorkey(colorkey)
+
+        self.text = nom
+
+        self.width = screen1.get_width()
+        self.height = screen1.get_height()
+        self.image = pygame.transform.scale(screen1, (int(self.width * scale), int(self.height * scale)))
+        self.mask = pygame.mask.from_surface(self.image)
+        self.rect = self.image.get_rect()
+
+        self.rect.x = pos[0]
+        self.rect.y = pos[1]
+
     def update(self):
         self.rect.x -= self.width // 15
 
@@ -120,13 +151,11 @@ class Player(pygame.sprite.Sprite):
         self.collide = False
 
         self.rotation = 4.5
-
-        self.a = Stone((0, 0), 0.5, all)
         
         self.islive, self.isfinal = True, False
 
     def update(self):
-        self.g -= self.height * 0.004
+        self.g -= self.height * 0.0043
 
         self.rect.y -= int(self.g * abs(self.g)) / 240 * 90
 
@@ -134,24 +163,27 @@ class Player(pygame.sprite.Sprite):
         for i in self.all_sprites:
             if pygame.sprite.collide_mask(i, self) and \
                     (type(i) == Stone or type(i) == Spike or type(i) == Final_line):
-                if type(i) == Spike and self.width * 0.1 < abs(self.rect.x - i.rect.x) < self.width * 0.9:
+                if type(i) == Spike or (type(i) == Stone and i.rect.y - self.rect.y <= 0.3 * self.height and abs(i.rect.x - self.rect.x) <= self.width):
                     self.islive = False
+                    self.rect.y += int(self.g * abs(self.g)) / 240 * 90
+                    self.collide = False
+                    break
                 elif type(i) == Final_line:
                     self.islive, self.isfinal = False, True
-                if abs(self.rect.y - i.rect.y) <= self.height:
+                if abs(self.rect.y - i.rect.y) <= self.height and type(i) == Stone:
                     self.rect.y -= self.height // 2 + self.rect.y - i.rect.y - 1
 
                 self.collide = False
                 if self.g < self.height * 0.06:
                     self.g = -self.height * 0.05
-                self.a = i
 
-        if self.collide:
-            self.rotation -= 4.5
-            self.rotation %= 180
-            self.image = pygame.transform.rotate(self.image_rotate, self.rotation)
-            self.mask = pygame.mask.from_surface(self.image)
-        else:
-            self.rotation //= 4
-            self.image = pygame.transform.rotate(self.image_rotate, self.rotation)
-            self.mask = pygame.mask.from_surface(self.image)
+        if self.islive:
+            if self.collide:
+                self.rotation -= 4.5
+                self.rotation %= 360
+                self.image = pygame.transform.rotate(self.image_rotate, self.rotation)
+                self.mask = pygame.mask.from_surface(self.image)
+            else:
+                self.rotation //= 4
+                self.image = pygame.transform.rotate(self.image_rotate, self.rotation)
+                self.mask = pygame.mask.from_surface(self.image)
