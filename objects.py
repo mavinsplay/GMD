@@ -2,7 +2,7 @@ import pygame
 import os
 
 
-def load_image(name: str, colorkey=None) -> pygame.image:
+def load_image(name: str, colorkey: ... = None) -> pygame.image:
     fullname = os.path.join('data', name)
     if not os.path.isfile(fullname):
         print(f"Файл с изображением '{fullname}' не найден")
@@ -42,7 +42,7 @@ class Button(pygame.sprite.Sprite):
 
 
 class Stone(pygame.sprite.Sprite):
-    def __init__(self, pos, scale, all):
+    def __init__(self, pos: tuple, scale: float, all: pygame.sprite.Group):
         super().__init__(all)
 
         screen1 = pygame.Surface((128, 128))
@@ -65,13 +65,16 @@ class Stone(pygame.sprite.Sprite):
 
 
 class Spike(pygame.sprite.Sprite):
-    def __init__(self, pos, scale, all):
+    def __init__(self, pos: tuple, scale: float, all: pygame.sprite.Group):
         super().__init__(all)
         self.original_image = load_image('spike.png')
         self.width = self.original_image.get_width()
         self.height = self.original_image.get_height()
-        self.image = pygame.transform.scale(self.original_image, (int(self.width * scale), int(self.height * scale)))
-        self.mask = pygame.mask.from_surface(pygame.transform.scale(load_image('spike_rect.png', -1), (int(self.width * scale), int(self.height * scale))))
+        self.image = pygame.transform.scale(
+            self.original_image, (int(self.width * scale), int(self.height * scale)))
+        self.mask = pygame.mask.from_surface(pygame.transform.scale(load_image('spike_rect.png', -1),
+                                                                    (int(self.width * scale),
+                                                                     int(self.height * scale))))
         self.rect = self.image.get_rect()
 
         self.rect.x = pos[0]
@@ -82,24 +85,25 @@ class Spike(pygame.sprite.Sprite):
 
 
 class Final_line(pygame.sprite.Sprite):
-    def __init__(self, pos, scale, all):
+    def __init__(self, pos: tuple, scale: float, all: pygame.sprite.Group):
         super().__init__(all)
         self.original_image = load_image('final_line.png')
         self.width = self.original_image.get_width()
         self.height = self.original_image.get_height()
-        self.image = pygame.transform.scale(self.original_image, (int(self.width * scale), int(self.height * scale)))
+        self.image = pygame.transform.scale(
+            self.original_image, (int(self.width * scale), int(self.height * scale)))
         self.mask = pygame.mask.from_surface(self.image)
         self.rect = self.image.get_rect()
 
         self.rect.x = pos[0]
         self.rect.y = pos[1]
-        
+
     def update(self):
         self.rect.x -= self.width // 15
 
 
 class Flag(pygame.sprite.Sprite):
-    def __init__(self, pos, scale, all, nom: str):
+    def __init__(self, pos: tuple, scale: float, all: pygame.sprite.Group, nom: str):
         super().__init__(all)
 
         screen1 = pygame.Surface((256, 256))
@@ -117,7 +121,8 @@ class Flag(pygame.sprite.Sprite):
 
         self.width = screen1.get_width()
         self.height = screen1.get_height()
-        self.image = pygame.transform.scale(screen1, (int(self.width * scale), int(self.height * scale)))
+        self.image = pygame.transform.scale(
+            screen1, (int(self.width * scale), int(self.height * scale)))
         self.mask = pygame.mask.from_surface(self.image)
         self.rect = self.image.get_rect()
 
@@ -134,8 +139,10 @@ class Player(pygame.sprite.Sprite):
         super().__init__(all)
         self.width = icon.get_width()
         self.height = icon.get_height()
-        self.image = pygame.transform.scale(icon, (int(self.width * scale), int(self.height * scale)))
-        self.image_rotate = pygame.transform.scale(icon, (int(self.width * scale), int(self.height * scale)))
+        self.image = pygame.transform.scale(
+            icon, (int(self.width * scale), int(self.height * scale)))
+        self.image_rotate = pygame.transform.scale(
+            icon, (int(self.width * scale), int(self.height * scale)))
         self.mask = pygame.mask.from_surface(self.image)
         self.rect = self.image.get_rect()
 
@@ -151,7 +158,7 @@ class Player(pygame.sprite.Sprite):
         self.collide = False
 
         self.rotation = 4.5
-        
+
         self.islive, self.isfinal = True, False
 
     def update(self):
@@ -163,7 +170,8 @@ class Player(pygame.sprite.Sprite):
         for i in self.all_sprites:
             if pygame.sprite.collide_mask(i, self) and \
                     (type(i) == Stone or type(i) == Spike or type(i) == Final_line):
-                if type(i) == Spike or (type(i) == Stone and i.rect.y - self.rect.y <= 0.3 * self.height and abs(i.rect.x - self.rect.x) <= self.width):
+                if type(i) == Spike or (type(i) == Stone and i.rect.y - self.rect.y <= 0.3 * self.height and
+                                        abs(i.rect.x - self.rect.x) <= self.width):
                     self.islive = False
                     self.rect.y += int(self.g * abs(self.g)) / 240 * 90
                     self.collide = False
@@ -181,9 +189,11 @@ class Player(pygame.sprite.Sprite):
             if self.collide:
                 self.rotation -= 4.5
                 self.rotation %= 360
-                self.image = pygame.transform.rotate(self.image_rotate, self.rotation)
+                self.image = pygame.transform.rotate(
+                    self.image_rotate, self.rotation)
                 self.mask = pygame.mask.from_surface(self.image)
             else:
                 self.rotation //= 4
-                self.image = pygame.transform.rotate(self.image_rotate, self.rotation)
+                self.image = pygame.transform.rotate(
+                    self.image_rotate, self.rotation)
                 self.mask = pygame.mask.from_surface(self.image)

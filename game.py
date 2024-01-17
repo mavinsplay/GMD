@@ -118,7 +118,7 @@ class GMD:
     def init_background(self) -> None:
         self.screen.blit(self.background, (0, 0))
 
-    def sql_write(self, score, level):
+    def sql_write(self, score: int, level: int):
         try:
             con = sqlite3.connect('leader_board.db')
             cur = con.cursor()
@@ -170,7 +170,7 @@ class GMD:
             pygame.display.flip()
             self.clock.tick(self.FPS)
 
-    def restart_window(self, level: int = 1, progress: int = 100, func=None):
+    def restart_window(self, level: int = 1, progress: int = 100, func: ... = None):
         self.restart_buttons_group = []
 
         self.restart_button = Button(load_image(
@@ -259,7 +259,7 @@ class GMD:
             self.init_music()
             self.start_window()
 
-    def start_level(self, level_nr: int = 1, func=None):
+    def start_level(self, level_nr: int = 1, func: ... = None):
         if func is None:
             def func(): return self.back_button_callback('restart-to-levels')
         pygame.mixer.music.stop()
@@ -316,6 +316,6 @@ class GMD:
 
 
 if __name__ == "__main__":
-    gmd = GMD(90, 1500, 800)
+    gmd = GMD(100, 1500, 800)
     gmd.start_window()
     pygame.quit()

@@ -38,7 +38,7 @@ class Editor:
         pygame.init()
         pygame.display.set_caption('Редактор уровня')
 
-    def init_radector(self, width: int, height: int, screen: pygame.display, 
+    def init_radector(self, width: int, height: int, screen: pygame.display,
                       icon: pygame.image, fps: int, level_nm) -> ...:
         self.level_nm = level_nm
         if self.level_nm == '+':
@@ -74,10 +74,10 @@ class Editor:
 
             btn_save = Button(load_image('save_level_buton_state1.png'),
                               (width * 0.7, height * (1 - scale_screen)), 0.6)
-            btn_close = Button(load_image('back_button.png'), 
-                               (width * (1 - scale_screen + \
+            btn_close = Button(load_image('back_button.png'),
+                               (width * (1 - scale_screen +
                                 btn_save.image.get_width() * 0.6 / width),
-                                    height * (1 - scale_screen)), 0.6)
+                                height * (1 - scale_screen)), 0.6)
 
             image = pygame.Surface((64, height * scale_screen))
             image.fill((0, 120, 120))
@@ -112,7 +112,8 @@ class Editor:
             pygame.mixer.music.stop()
             if self.player1 is None:
                 self.player1 = Player(
-                    (self.player.width * scale * 5, self.player.height * scale * 3), 
+                    (self.player.width * scale * 5,
+                     self.player.height * scale * 3),
                     scale, all_sprites2, icon)
 
             self.posit = 0
@@ -234,7 +235,7 @@ class Editor:
                 clock.tick(fps)
                 pygame.display.flip()
 
-    def save(self, all_sprites, scale, level_nr=4) -> None:
+    def save(self, all_sprites: pygame.sprite.Group, scale: float, level_nr: int = 4) -> None:
         filename = "geometry_levels/" + str(level_nr)
 
         f = open(filename, "w")
