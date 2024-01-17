@@ -3,16 +3,20 @@ import os
 from objects import Player, Stone, Button, load_image, Spike, Final_line, Flag
 
 
-def loadLevel(scale: float,
+def loadLevel(scale: float, # функция загрузки уровня
               all_sprites: pygame.sprite.Group, level_nr: int = 1,
-              music: str = '001.mp3', icon: str = 'icon_1.png') -> Player:  # функция для загрузки уровня
+              music: str = '001.mp3', icon: str = 'icon_1.png') -> Player:
     filename = "geometry_levels/" + str(level_nr)
-    if not os.path.isfile(filename):  # если файла нет
+
+    if not os.path.isfile(filename): # если файла нет
         return False
+
     f = open(filename, "r")
     data = f.readlines()
+
     person = None
     x, y = 0, 0
+
     for row in data:
         for ch in row:
             if ch == "O":
@@ -26,12 +30,14 @@ def loadLevel(scale: float,
             x += 128 * scale
         x = 0
         y += 128 * scale
+
     pygame.mixer.music.load(f'data/{music}')
     pygame.mixer.music.play()
+
     return person
 
 
-class Editor:  # основной класс, рализующий редактор
+class Editor: # основной класс редактора
     def __init__(self) -> None:
         super().__init__()
 
@@ -39,13 +45,16 @@ class Editor:  # основной класс, рализующий редакт�
         pygame.display.set_caption('Редактор уровня')
 
     def init_radector(self, width: int, height: int, screen: pygame.display,
-                      icon: pygame.image, fps: int, level_nm) -> ...:  # инициализация интерфейса
+                      icon: pygame.image, fps: int, level_nm) -> ...: # инициализация редактора
         self.level_nm = level_nm
+
         if self.level_nm == '+':
             self.level_nm = len(os.listdir('geometry_levels')) + 1
+
             filename = "geometry_levels/" + str(self.level_nm)
 
             f = open(filename, "w")
+
             for y in range(6):
                 for x in range(6):
                     if y == 4 and x == 5:
@@ -54,9 +63,11 @@ class Editor:  # основной класс, рализующий редакт�
                         f.write('.')
                 f.write('\n')
             f.close()
+
         if self.level_nm is not None:
 
             clock = pygame.time.Clock()
+
             running = True
 
             all_sprites = pygame.sprite.Group()
@@ -67,6 +78,7 @@ class Editor:  # основной класс, рализующий редакт�
 
             image = pygame.Surface((width, height * scale_screen))
             image.fill((255, 120, 120))
+
             self.screen = pygame.sprite.Sprite(all_sprites)
             self.screen.image = image.convert_alpha()
             self.screen.rect = self.screen.image.get_rect()
@@ -74,6 +86,7 @@ class Editor:  # основной класс, рализующий редакт�
 
             btn_save = Button(load_image('save_level_buton_state1.png'),
                               (width * 0.7, height * (1 - scale_screen)), 0.6)
+
             btn_close = Button(load_image('back_button.png'),
                                (width * (1 - scale_screen +
                                 btn_save.image.get_width() * 0.6 / width),
@@ -81,6 +94,7 @@ class Editor:  # основной класс, рализующий редакт�
 
             image = pygame.Surface((64, height * scale_screen))
             image.fill((0, 120, 120))
+
             self.screen1 = pygame.sprite.Sprite(all_sprites)
             self.screen1.image = image.convert_alpha()
             self.screen1.rect = self.screen1.image.get_rect()
@@ -110,6 +124,7 @@ class Editor:  # основной класс, рализующий редакт�
                 scale, all_sprites2, level_nr=self.level_nm, icon=icon)
 
             pygame.mixer.music.stop()
+
             if self.player1 is None:
                 self.player1 = Player(
                     (self.player.width * scale * 5,
@@ -128,9 +143,11 @@ class Editor:  # основной класс, рализующий редакт�
                     if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                         if event.pos[1] < height * (1 - scale_screen):
                             click = True
+
                             for i in all_sprites2:
                                 if i != fon and i.rect.collidepoint(event.pos[0], event.pos[1]):
                                     click = False
+
                             if click:
                                 if self.posit == 0:
                                     Stone((event.pos[0] - event.pos[0] % int(self.player.width * scale),
@@ -153,21 +170,28 @@ class Editor:  # основной класс, рализующий редакт�
                             if btn_save.rect.collidepoint(event.pos):
                                 self.save(all_sprites2, scale,
                                           level_nr=self.level_nm)
+
                                 btn_save.update('save_level_buton_state2.png')
+
                                 return self.level_nm
                             elif btn_close.rect.collidepoint(event.pos):
                                 btn_close.update('back_button.png')
+
                             if self.stone.rect.collidepoint(event.pos):
                                 self.posit = 0
+
                                 self.screen1.rect.x = width * 0.1
                             elif self.trap.rect.collidepoint(event.pos):
                                 self.posit = 1
+
                                 self.screen1.rect.x = width * 0.2
                             elif self.player.rect.collidepoint(event.pos):
                                 self.posit = 2
+
                                 self.screen1.rect.x = width * 0.3
                             elif self.final_line.rect.collidepoint(event.pos):
                                 self.posit = 3
+
                                 self.screen1.rect.x = width * 0.4
 
                     if event.type == pygame.MOUSEBUTTONDOWN and event.button == 3:
@@ -178,6 +202,7 @@ class Editor:  # основной класс, рализующий редакт�
 
                     if event.type == pygame.MOUSEBUTTONUP:
                         btn_save.update('save_level_buton_state2.png')
+
                         if btn_close.rect.collidepoint(event.pos):
                             running = False
                         else:
@@ -211,6 +236,7 @@ class Editor:  # основной класс, рализующий редакт�
 
                 for i in all_sprites2:
                     if i != fon:
+
                         if left:
                             i.rect.x -= self.player.width * scale
                         elif up:
@@ -220,7 +246,7 @@ class Editor:  # основной класс, рализующий редакт�
                         elif down:
                             i.rect.y += self.player.height * scale
 
-                all_sprites2.draw(screen)  # отрисовка всех основных спрайтов
+                all_sprites2.draw(screen) # отрисовка всех спрайтов
                 all_sprites.draw(screen)
                 btn_save.draw(screen)
                 btn_close.draw(screen)
@@ -236,8 +262,7 @@ class Editor:  # основной класс, рализующий редакт�
                 pygame.display.flip()
 
     def save(self, all_sprites: pygame.sprite.Group, scale: float, level_nr: int = 4) -> None:
-        # сохранение построенного уровня в формате txt
-        filename = "geometry_levels/" + str(level_nr)
+        filename = "geometry_levels/" + str(level_nr) # сохранение уровня
 
         f = open(filename, "w")
 
@@ -255,6 +280,7 @@ class Editor:  # основной класс, рализующий редакт�
             for x in range(int((player_x - 5 * self.player.width * scale) / self.player.width / scale),
                            int(max_x / self.player.width / scale) + 1):
                 write = True
+
                 for i in all_sprites:
                     if i.rect.x == x * int(self.player.width * scale) and i.rect.y == y * int(
                             self.player.height * scale):
@@ -274,14 +300,13 @@ class Editor:  # основной класс, рализующий редакт�
         f.close()
 
 
-class Redactor:  # класс, реализующий выбор уровней и их редактирование
+class Redactor: # класс списка уровней
     def __init__(self) -> None:
         super().__init__()
 
         pygame.init()
         pygame.display.set_caption('Редактор уровня')
 
-    # инициализация класса
     def init_radector(self, width: int, height: int, screen: pygame.display, fps: int) -> ...:
         clock = pygame.time.Clock()
         running = True
