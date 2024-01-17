@@ -5,9 +5,9 @@ from objects import Player, Stone, Button, load_image, Spike, Final_line, Flag
 
 def loadLevel(scale: float,
               all_sprites: pygame.sprite.Group, level_nr: int = 1,
-              music: str = '001.mp3', icon: str = 'icon_1.png') -> Player: # функция для загрузки уровня
+              music: str = '001.mp3', icon: str = 'icon_1.png') -> Player:  # функция для загрузки уровня
     filename = "geometry_levels/" + str(level_nr)
-    if not os.path.isfile(filename): # если файла нет
+    if not os.path.isfile(filename):  # если файла нет
         return False
     f = open(filename, "r")
     data = f.readlines()
@@ -31,7 +31,7 @@ def loadLevel(scale: float,
     return person
 
 
-class Editor: # основной класс, рализующий редактор
+class Editor:  # основной класс, рализующий редактор
     def __init__(self) -> None:
         super().__init__()
 
@@ -39,7 +39,7 @@ class Editor: # основной класс, рализующий редакто
         pygame.display.set_caption('Редактор уровня')
 
     def init_radector(self, width: int, height: int, screen: pygame.display,
-                      icon: pygame.image, fps: int, level_nm) -> ...: # инициализация интерфейса
+                      icon: pygame.image, fps: int, level_nm) -> ...:  # инициализация интерфейса
         self.level_nm = level_nm
         if self.level_nm == '+':
             self.level_nm = len(os.listdir('geometry_levels')) + 1
@@ -220,7 +220,7 @@ class Editor: # основной класс, рализующий редакто
                         elif down:
                             i.rect.y += self.player.height * scale
 
-                all_sprites2.draw(screen) # отрисовка всех основных спрайтов
+                all_sprites2.draw(screen)  # отрисовка всех основных спрайтов
                 all_sprites.draw(screen)
                 btn_save.draw(screen)
                 btn_close.draw(screen)
@@ -236,7 +236,8 @@ class Editor: # основной класс, рализующий редакто
                 pygame.display.flip()
 
     def save(self, all_sprites: pygame.sprite.Group, scale: float, level_nr: int = 4) -> None:
-        filename = "geometry_levels/" + str(level_nr) # сохранение построенного уровня в формате txt
+        # сохранение построенного уровня в формате txt
+        filename = "geometry_levels/" + str(level_nr)
 
         f = open(filename, "w")
 
@@ -273,14 +274,15 @@ class Editor: # основной класс, рализующий редакто
         f.close()
 
 
-class Redactor: # класс, реализующий выбор уровней и их редактирование
+class Redactor:  # класс, реализующий выбор уровней и их редактирование
     def __init__(self) -> None:
         super().__init__()
 
         pygame.init()
         pygame.display.set_caption('Редактор уровня')
 
-    def init_radector(self, width: int, height: int, screen: pygame.display, fps: int) -> ...: # инициализация класса
+    # инициализация класса
+    def init_radector(self, width: int, height: int, screen: pygame.display, fps: int) -> ...:
         clock = pygame.time.Clock()
         running = True
 
