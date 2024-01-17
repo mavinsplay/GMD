@@ -5,12 +5,12 @@ import sqlite3
 import os
 
 
-class GMD:
+class GMD: # главный класс, объединяет все модули, и формирует игру
     def __init__(self, fps: int, width: int, height: int) -> None:
         pygame.init()
         pygame.mixer.init()
         self.clock = pygame.time.Clock()
-        with open('player.txt', 'r+') as file:
+        with open('player.txt', 'r+') as file: # ввод никнейма игрока, для таблицы результатов
             data = file.readline()
             if not data:
                 file.write('player')
@@ -31,11 +31,11 @@ class GMD:
             load_image('background.png'), (self.width, self.height))
         pygame.display.set_caption('GMD v 1.0       by o2o and SAVITSKY')
         self.select_icon = load_image('icon_1.png')
-        self.init_start_buttons()
+        self.init_start_buttons() # инициализация всез кнопок
         self.init_icons_buttons()
         self.init_levels_buttons()
 
-    def init_music(self, path: str = 'data/menuLoop.mp3', time: int = -1) -> None:
+    def init_music(self, path: str = 'data/menuLoop.mp3', time: int = -1) -> None: # метод для проигывании музыки
         pygame.mixer.music.stop()
         pygame.mixer.music.unload()
         pygame.mixer.music.load(path)
@@ -104,7 +104,7 @@ class GMD:
             self.icons[name].set_callback_func(lambda n=name: self.set_icon(n))
             x += 0.1
 
-    def back_button_callback(self, call: str) -> None:
+    def back_button_callback(self, call: str) -> None: # функция callback для кнопки назад
         if call == 'play-to-menu':
             self.start_window()
         elif call == 'editor-to-menu':
@@ -118,7 +118,7 @@ class GMD:
     def init_background(self) -> None:
         self.screen.blit(self.background, (0, 0))
 
-    def sql_write(self, score: int, level: int):
+    def sql_write(self, score: int, level: int): # метод для записи в БД рекордов
         try:
             con = sqlite3.connect('leader_board.db')
             cur = con.cursor()
@@ -134,7 +134,7 @@ class GMD:
         self.select_icon = load_image(icon)
         self.set_icon_button()
 
-    def start_window(self) -> None:
+    def start_window(self) -> None: # метод, реализующий стартовое окно
         pygame.display.set_caption('GMD v 1.0       by o2o and SAVITSKY')
         self.screen.fill((0, 0, 0))
         self.init_background()
@@ -152,7 +152,7 @@ class GMD:
             pygame.display.flip()
             self.clock.tick(self.FPS)
 
-    def levels_window(self) -> None:
+    def levels_window(self) -> None: # метод с окном уровней
         self.screen.fill((0, 0, 0))
         self.screen.blit(self.background1, (0, 0))
         for i in self.levels_button_group:
@@ -170,7 +170,7 @@ class GMD:
             pygame.display.flip()
             self.clock.tick(self.FPS)
 
-    def restart_window(self, level: int = 1, progress: int = 100, func: ... = None):
+    def restart_window(self, level: int = 1, progress: int = 100, func: ... = None): # окно рестарта уровня
         self.restart_buttons_group = []
 
         self.restart_button = Button(load_image(
@@ -210,7 +210,7 @@ class GMD:
             pygame.display.flip()
             self.clock.tick(self.FPS)
 
-    def set_icon_button(self) -> None:
+    def set_icon_button(self) -> None: # окно смены иконки
         self.screen.fill((0, 0, 0))
         self.screen.blit(self.background1, (0, 0))
         self.screen.blit(pygame.transform.scale(load_image(
@@ -237,7 +237,7 @@ class GMD:
             pygame.display.flip()
             self.clock.tick(self.FPS)
 
-    def editor(self, is_level=None) -> None:
+    def editor(self, is_level=None) -> None: # окно редактора
         pygame.mixer.music.stop()
         self.screen.fill((0, 0, 0))
         self.editor_screen = True
@@ -259,7 +259,7 @@ class GMD:
             self.init_music()
             self.start_window()
 
-    def start_level(self, level_nr: int = 1, func: ... = None):
+    def start_level(self, level_nr: int = 1, func: ... = None): # базовый метод запска уровней
         if func is None:
             def func(): return self.back_button_callback('restart-to-levels')
         pygame.mixer.music.stop()
@@ -271,7 +271,7 @@ class GMD:
                            f'{str(level_nr if int(level_nr) < 4 else 1).rjust(3, "0")}.mp3', 
                            self.select_icon)
         rightmost_sprite = max(
-            all_sprites, key=lambda sprite: sprite.rect.right).rect.right
+            all_sprites, key=lambda sprite: sprite.rect.right).rect.right # определение крайнего правого спрайта
         progress = 0
         while self.running:
             for event in pygame.event.get():
